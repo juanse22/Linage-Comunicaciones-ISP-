@@ -1,8 +1,12 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.example.Linageisp.ui.components
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +20,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.getValue
 
 /**
  * Elemento de navegación
@@ -151,7 +156,7 @@ private fun ModernNavItem(
             AnimatedContent(
                 targetState = item.label,
                 transitionSpec = {
-                    fadeIn(tween(150)) + scaleIn(tween(150)) with
+                    fadeIn(tween(150)) + scaleIn(tween(150)) togetherWith
                             fadeOut(tween(150)) + scaleOut(tween(150))
                 },
                 label = "navLabel"

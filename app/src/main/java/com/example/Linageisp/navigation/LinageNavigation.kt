@@ -21,6 +21,10 @@ sealed class LinageDestinations(val route: String) {
     object Plans : LinageDestinations("plans")
     object Benefits : LinageDestinations("benefits")
     object Account : LinageDestinations("account")
+    object SpeedTest : LinageDestinations("speed_test")
+    object TechnicalSupport : LinageDestinations("technical_support")
+    object Billing : LinageDestinations("billing")
+    object Settings : LinageDestinations("settings")
 }
 
 /**
@@ -42,6 +46,12 @@ fun LinageNavHost(
             NewHomeScreen(
                 onNavigateToPlans = {
                     navController.navigate(LinageDestinations.Plans.route)
+                },
+                onNavigateToSpeedTest = {
+                    navController.navigate(LinageDestinations.SpeedTest.route)
+                },
+                onNavigateToSupport = {
+                    navController.navigate(LinageDestinations.TechnicalSupport.route)
                 }
             )
         }
@@ -60,7 +70,96 @@ fun LinageNavHost(
         
         // Pantalla de Cuenta
         composable(LinageDestinations.Account.route) {
-            AccountScreen()
+            AccountScreen(
+                onNavigateToSpeedTest = {
+                    navController.navigate(LinageDestinations.SpeedTest.route)
+                },
+                onNavigateToSupport = {
+                    navController.navigate(LinageDestinations.TechnicalSupport.route)
+                },
+                onNavigateToBilling = {
+                    navController.navigate(LinageDestinations.Billing.route)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(LinageDestinations.Settings.route)
+                }
+            )
+        }
+        
+        // Pantalla de Test de Velocidad
+        composable(
+            route = LinageDestinations.SpeedTest.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            SpeedTestScreen()
+        }
+        
+        // Pantalla de Soporte Técnico
+        composable(
+            route = LinageDestinations.TechnicalSupport.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            TechnicalSupportScreen()
+        }
+        
+        // Pantalla de Facturación
+        composable(
+            route = LinageDestinations.Billing.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            BillingScreen()
+        }
+        
+        // Pantalla de Configuración
+        composable(
+            route = LinageDestinations.Settings.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            SettingsScreen()
         }
     }
 }

@@ -50,8 +50,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     
-    // Animaciones de Compose
-    implementation("androidx.compose.animation:animation:1.5.4")
+    // Compose BOM y dependencias
+    implementation(platform("androidx.compose:compose-bom:2024.09.00"))
+    implementation("androidx.compose.animation:animation")
+    implementation("androidx.compose.material:material-icons-extended")
     
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.6")

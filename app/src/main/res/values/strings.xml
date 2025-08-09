@@ -1,3 +1,56 @@
 <resources>
     <string name="app_name">Linage ISP</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_plans">Planes</string>
+    <string name="nav_benefits">Beneficios</string>
+    <string name="nav_account">Cuenta</string>
+    <string name="nav_speed_test">Test de Velocidad</string>
+    <string name="nav_support">Soporte</string>
+    <string name="nav_billing">Facturación</string>
+    <string name="nav_settings">Configuración</string>
+    
+    <!-- Speed Test -->
+    <string name="speed_test_title">Test de Velocidad</string>
+    <string name="speed_test_start">Iniciar Test</string>
+    <string name="speed_test_testing">Probando…</string>
+    <string name="speed_test_download">Descarga</string>
+    <string name="speed_test_upload">Subida</string>
+    <string name="speed_test_ping">Ping</string>
+    <string name="speed_test_mbps">Mbps</string>
+    <string name="speed_test_ms">ms</string>
+    <string name="speed_test_history">Historial</string>
+    <string name="speed_test_share">Compartir</string>
+    
+    <!-- Support -->
+    <string name="support_title">Soporte Técnico</string>
+    <string name="support_faq">Preguntas Frecuentes</string>
+    <string name="support_contact">Contactar Soporte</string>
+    <string name="support_whatsapp">WhatsApp</string>
+    <string name="support_phone">Teléfono</string>
+    <string name="support_chat">Chat en Vivo</string>
+    
+    <!-- Billing -->
+    <string name="billing_title">Facturación</string>
+    <string name="billing_current">Factura Actual</string>
+    <string name="billing_history">Historial de Pagos</string>
+    <string name="billing_methods">Métodos de Pago</string>
+    <string name="billing_download">Descargar Factura</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">Configuración</string>
+    <string name="settings_notifications">Notificaciones</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_account">Cuenta</string>
+    <string name="settings_about">Acerca de</string>
+    <string name="settings_terms">Términos y Condiciones</string>
+    <string name="settings_privacy">Política de Privacidad</string>
+    
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancelar</string>
+    <string name="close">Cerrar</string>
+    <string name="save">Guardar</string>
+    <string name="share">Compartir</string>
 </resources>

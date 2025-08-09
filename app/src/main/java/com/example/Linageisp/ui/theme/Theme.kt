@@ -12,21 +12,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 /**
- * Esquema de colores para modo oscuro
- * Utiliza la paleta naranja corporativa de Linage ISP
+ * Esquema de colores para modo oscuro mejorado
+ * Utiliza la paleta naranja corporativa de Linage ISP con mejor contraste
  */
 private val DarkColorScheme = darkColorScheme(
     primary = LinageOrange,
-    secondary = LinageGray,
-    tertiary = LinageOrangeLight,
-    background = LinageGrayDark,
-    surface = LinageGrayDark,
     onPrimary = LinageWhite,
-    onSecondary = LinageWhite,
-    onBackground = LinageWhite,
-    onSurface = LinageWhite,
     primaryContainer = LinageOrangeDark,
-    onPrimaryContainer = LinageWhite
+    onPrimaryContainer = LinageWhite,
+    secondary = LinageGrayLight,
+    onSecondary = LinageDarkBackground,
+    secondaryContainer = LinageDarkSurfaceVariant,
+    onSecondaryContainer = LinageWhite,
+    tertiary = LinageOrangeLight,
+    onTertiary = LinageGrayDark,
+    background = LinageDarkBackground,
+    onBackground = LinageWhite,
+    surface = LinageDarkSurface,
+    onSurface = LinageWhite,
+    surfaceVariant = LinageDarkSurfaceVariant,
+    onSurfaceVariant = LinageGrayLight,
+    outline = LinageDarkOutline,
+    inverseOnSurface = LinageDarkBackground,
+    inverseSurface = LinageWhite,
+    inversePrimary = LinageOrangeDark
 )
 
 /**

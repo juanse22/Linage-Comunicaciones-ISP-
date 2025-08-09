@@ -1,8 +1,12 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.example.Linageisp.ui.screens
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -18,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.getValue
 import com.example.Linageisp.ui.theme.*
 import kotlinx.coroutines.delay
 

@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.example.Linageisp.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -25,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.Linageisp.R
 import com.example.Linageisp.ui.theme.*
+import com.example.Linageisp.ui.components.FrostedCard
+import androidx.compose.runtime.getValue
 import kotlinx.coroutines.delay
 
 /**
@@ -64,7 +71,9 @@ data class BusinessPartner(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NewHomeScreen(
-    onNavigateToPlans: () -> Unit
+    onNavigateToPlans: () -> Unit,
+    onNavigateToSpeedTest: () -> Unit = {},
+    onNavigateToSupport: () -> Unit = {}
 ) {
     var isLoaded by remember { mutableStateOf(false) }
     
@@ -121,6 +130,21 @@ fun NewHomeScreen(
             }
         }
         
+        // Accesos rápidos a nuevas funciones
+        item {
+            AnimatedVisibility(
+                visible = isLoaded,
+                enter = fadeIn(tween(800, 500)) + slideInVertically(
+                    tween(800, 500), initialOffsetY = { it / 4 }
+                )
+            ) {
+                QuickAccessSection(
+                    onSpeedTestClick = onNavigateToSpeedTest,
+                    onSupportClick = onNavigateToSupport
+                )
+            }
+        }
+        
         // Sección de beneficios
         item {
             AnimatedVisibility(
@@ -142,6 +166,18 @@ fun NewHomeScreen(
                 )
             ) {
                 BusinessPartnersSection()
+            }
+        }
+        
+        // Sección DIRECTV GO - Socio Estratégico
+        item {
+            AnimatedVisibility(
+                visible = isLoaded,
+                enter = fadeIn(tween(1200, 1000)) + slideInVertically(
+                    tween(1200, 1000), initialOffsetY = { it / 3 }
+                )
+            ) {
+                DirectTVPartnerSection()
             }
         }
     }
@@ -421,6 +457,7 @@ private fun QuickActionButton(onClick: () -> Unit) {
     }
 }
 
+
 /**
  * Sección de beneficios principales
  */
@@ -550,6 +587,7 @@ private fun BenefitCard(benefit: HomeBenefit) {
         }
     }
 }
+
 
 /**
  * Sección de aliados comerciales
@@ -715,6 +753,333 @@ private fun PartnerCard(partner: BusinessPartner) {
     LaunchedEffect(isPressed) {
         if (isPressed) {
             delay(150)
+            isPressed = false
+        }
+    }
+}
+
+
+/**
+ * Sección de accesos rápidos a nuevas funcionalidades
+ */
+@Composable
+private fun QuickAccessSection(
+    onSpeedTestClick: () -> Unit,
+    onSupportClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp)
+    ) {
+        Text(
+            text = "Accesos Rápidos",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = LinageOrangeDark
+            ),
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Test de Velocidad
+            QuickAccessCard(
+                modifier = Modifier.weight(1f),
+                title = "Test Velocidad",
+                description = "Mide tu conexión",
+                emoji = "⚡",
+                backgroundColor = Color(0xFFE8F5E8),
+                onClick = onSpeedTestClick
+            )
+            
+            // Soporte Técnico
+            QuickAccessCard(
+                modifier = Modifier.weight(1f),
+                title = "Soporte",
+                description = "Ayuda instantánea",
+                emoji = "🆘",
+                backgroundColor = Color(0xFFE3F2FD),
+                onClick = onSupportClick
+            )
+        }
+    }
+}
+
+/**
+ * Tarjeta de acceso rápido individual
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun QuickAccessCard(
+    title: String,
+    description: String,
+    emoji: String,
+    backgroundColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var isPressed by remember { mutableStateOf(false) }
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "quick_access_scale"
+    )
+
+    Card(
+        onClick = {
+            isPressed = true
+            onClick()
+        },
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = emoji,
+                fontSize = 32.sp
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                textAlign = TextAlign.Center
+            )
+            
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = LinageGray
+                ),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+    
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            delay(150)
+            isPressed = false
+        }
+    }
+}
+
+/**
+ * Sección especial para DIRECTV GO - Socio Estratégico
+ */
+@Composable
+private fun DirectTVPartnerSection() {
+    var isPressed by remember { mutableStateOf(false) }
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "directv_scale"
+    )
+
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp)
+    ) {
+        // Header de la sección con estilo especial
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "⭐",
+                fontSize = 24.sp
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Socio Estratégico",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = LinageOrangeDark
+                )
+            )
+        }
+        
+        Text(
+            text = "Entretenimiento premium para nuestros clientes",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = LinageGray
+            ),
+            modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+        )
+
+        // Tarjeta especial de DIRECTV GO con estilo Frutiger Aero
+        Card(
+            onClick = { isPressed = true },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                },
+            colors = CardDefaults.cardColors(
+                containerColor = LinageWhite
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+            shape = RoundedCornerShape(24.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFFE3F2FD), // Azul claro
+                                Color(0xFFF3E5F5), // Rosa claro
+                                LinageOrangeSoft    // Naranja suave Linage
+                            ),
+                            startX = 0f,
+                            endX = Float.POSITIVE_INFINITY
+                        )
+                    )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Logo de DIRECTV GO con marco glassmorphic
+                    Card(
+                        modifier = Modifier.size(80.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = LinageWhite.copy(alpha = 0.9f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.directv_go),
+                                contentDescription = "DIRECTV GO Logo",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.width(20.dp))
+                    
+                    // Contenido de texto
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        // Badge de "ALIADO OFICIAL"
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = LinageOrange
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = "ALIADO OFICIAL",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = LinageWhite,
+                                    letterSpacing = 0.5.sp
+                                ),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text(
+                            text = "DIRECTV GO",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1976D2) // Azul DIRECTV
+                            )
+                        )
+                        
+                        Text(
+                            text = "Streaming premium incluido",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = LinageGray,
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                        
+                        Text(
+                            text = "Miles de contenidos al alcance de tu mano",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = LinageGray.copy(alpha = 0.8f)
+                            )
+                        )
+                    }
+                    
+                    // Icono de acción con efecto glassmorphic
+                    Card(
+                        modifier = Modifier.size(44.dp),
+                        shape = CircleShape,
+                        colors = CardDefaults.cardColors(
+                            containerColor = LinageOrange.copy(alpha = 0.9f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "▶️",
+                                fontSize = 20.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Texto descriptivo adicional con estilo sutil
+        Text(
+            text = "🔥 Disponible para todos nuestros clientes de fibra óptica",
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = LinageOrangeDark,
+                fontWeight = FontWeight.Medium
+            ),
+            modifier = Modifier.padding(top = 12.dp),
+            textAlign = TextAlign.Center
+        )
+    }
+    
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            delay(200)
             isPressed = false
         }
     }

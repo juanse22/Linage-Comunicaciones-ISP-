@@ -1,8 +1,12 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.example.Linageisp.ui.screens
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,6 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.getValue
+import android.content.Intent
+import android.net.Uri
 import com.example.Linageisp.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -53,7 +62,12 @@ data class BillingInfo(
  */
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun AccountScreen() {
+fun AccountScreen(
+    onNavigateToSpeedTest: () -> Unit = {},
+    onNavigateToSupport: () -> Unit = {},
+    onNavigateToBilling: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
+) {
     var isLoaded by remember { mutableStateOf(false) }
     
     // Trigger de animaciones
@@ -120,7 +134,13 @@ fun AccountScreen() {
                     tween(600, 600), initialOffsetY = { it / 4 }
                 ) + fadeIn(tween(600, 600))
             ) {
-                AccountMenuItemCard(menuItem = menuItem)
+                AccountMenuItemCard(
+                    menuItem = menuItem,
+                    onNavigateToSpeedTest = onNavigateToSpeedTest,
+                    onNavigateToSupport = onNavigateToSupport,
+                    onNavigateToBilling = onNavigateToBilling,
+                    onNavigateToSettings = onNavigateToSettings
+                )
             }
         }
         
@@ -254,6 +274,7 @@ private fun UserProfileHeader() {
  */
 @Composable
 private fun BillingInfoCard() {
+    val context = LocalContext.current
     val billingInfo = BillingInfo(
         amount = "$70.000",
         dueDate = "15 de Agosto",
@@ -347,7 +368,10 @@ private fun BillingInfoCard() {
             
             // Botón de pago
             Button(
-                onClick = { /* TODO: Handle payment */ },
+                onClick = { 
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://combopay.co/invoices/linage-comunicaciones"))
+                    context.startActivity(intent)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = LinageOrangeSoft
@@ -355,7 +379,7 @@ private fun BillingInfoCard() {
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "💰 Ver Historial de Pagos",
+                    text = "💰 Pagar con ComboPay",
                     style = MaterialTheme.typography.titleSmall.copy(
                         color = LinageOrangeDark,
                         fontWeight = FontWeight.Bold
@@ -475,7 +499,13 @@ private fun ConnectionStatusCard() {
  * Tarjeta de opción del menú
  */
 @Composable
-private fun AccountMenuItemCard(menuItem: AccountMenuItem) {
+private fun AccountMenuItemCard(
+    menuItem: AccountMenuItem,
+    onNavigateToSpeedTest: () -> Unit = {},
+    onNavigateToSupport: () -> Unit = {},
+    onNavigateToBilling: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
+) {
     var isPressed by remember { mutableStateOf(false) }
     
     val scale by animateFloatAsState(
@@ -488,7 +518,14 @@ private fun AccountMenuItemCard(menuItem: AccountMenuItem) {
     )
 
     Card(
-        onClick = { isPressed = true },
+        onClick = { 
+            isPressed = true
+            when (menuItem.title) {
+                "Soporte Técnico" -> onNavigateToSupport()
+                "Configuración" -> onNavigateToSettings()
+                else -> { /* Handle other menu items */ }
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
@@ -556,7 +593,7 @@ private fun AccountMenuItemCard(menuItem: AccountMenuItem) {
             }
             
             Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Navegar",
                 tint = LinageGray
             )
@@ -600,10 +637,10 @@ private fun ContactInfoCard() {
             
             // Opciones de contacto
             val contactOptions = listOf(
-                Triple("📱", "WhatsApp", "+57 300 123 4567"),
+                Triple("📱", "WhatsApp", "+57 302 4478864"),
                 Triple("☎️", "Línea de Atención", "+57 (1) 234 5678"),
                 Triple("📧", "Email", "soporte@linageisp.com"),
-                Triple("💬", "Chat en Vivo", "Disponible 24/7")
+                Triple("💰", "Pagar Factura", "ComboPay")
             )
             
             contactOptions.forEach { (emoji, title, info) ->
