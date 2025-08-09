@@ -47,9 +47,6 @@ fun LinageNavHost(
                 onNavigateToPlans = {
                     navController.navigate(LinageDestinations.Plans.route)
                 },
-                onNavigateToSpeedTest = {
-                    navController.navigate(LinageDestinations.SpeedTest.route)
-                },
                 onNavigateToSupport = {
                     navController.navigate(LinageDestinations.TechnicalSupport.route)
                 }

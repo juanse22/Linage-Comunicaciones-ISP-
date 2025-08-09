@@ -68,6 +68,15 @@ dependencies {
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     
+    // Performance & Memory Optimization
+    implementation("androidx.metrics:metrics-performance:1.0.0-alpha04")
+    implementation("androidx.tracing:tracing:1.2.0")
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    
+    // Image loading optimizations
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("io.coil-kt:coil-gif:2.4.0")
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -4,7 +4,6 @@ package com.example.Linageisp.ui.screens
 
 import androidx.compose.animation.*
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -23,15 +22,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.Intent
+import android.net.Uri
 import com.example.Linageisp.R
 import com.example.Linageisp.ui.theme.*
-import com.example.Linageisp.ui.components.FrostedCard
-import androidx.compose.runtime.getValue
 import kotlinx.coroutines.delay
 
 /**
@@ -72,7 +76,6 @@ data class BusinessPartner(
 @Composable
 fun NewHomeScreen(
     onNavigateToPlans: () -> Unit,
-    onNavigateToSpeedTest: () -> Unit = {},
     onNavigateToSupport: () -> Unit = {}
 ) {
     var isLoaded by remember { mutableStateOf(false) }
@@ -108,6 +111,7 @@ fun NewHomeScreen(
             }
         }
         
+        
         // Banner promocional rotativo
         item {
             AnimatedVisibility(
@@ -130,7 +134,7 @@ fun NewHomeScreen(
             }
         }
         
-        // Accesos rápidos a nuevas funciones
+        // Accesos rápidos - Solo Soporte (sin Test de Velocidad)
         item {
             AnimatedVisibility(
                 visible = isLoaded,
@@ -138,10 +142,7 @@ fun NewHomeScreen(
                     tween(800, 500), initialOffsetY = { it / 4 }
                 )
             ) {
-                QuickAccessSection(
-                    onSpeedTestClick = onNavigateToSpeedTest,
-                    onSupportClick = onNavigateToSupport
-                )
+                SupportAccessSection(onSupportClick = onNavigateToSupport)
             }
         }
         
@@ -157,7 +158,7 @@ fun NewHomeScreen(
             }
         }
         
-        // Sección Aliados Linage
+        // Sección Aliados Linage (actualizada con Win Sports Max)
         item {
             AnimatedVisibility(
                 visible = isLoaded,
@@ -169,17 +170,6 @@ fun NewHomeScreen(
             }
         }
         
-        // Sección DIRECTV GO - Socio Estratégico
-        item {
-            AnimatedVisibility(
-                visible = isLoaded,
-                enter = fadeIn(tween(1200, 1000)) + slideInVertically(
-                    tween(1200, 1000), initialOffsetY = { it / 3 }
-                )
-            ) {
-                DirectTVPartnerSection()
-            }
-        }
     }
 }
 
@@ -268,6 +258,12 @@ private fun PromoBannerCarousel() {
             description = "Hasta 900 Mbps de velocidad",
             imageRes = R.drawable.linagebanner,
             gradientColors = listOf(LinageOrange, LinageOrangeLight)
+        ),
+        PromoBanner(
+            title = "DIRECTV GO",
+            description = "Streaming premium incluido",
+            imageRes = R.drawable.directv_go,
+            gradientColors = listOf(Color(0xFF1976D2), Color(0xFF42A5F5))
         ),
         PromoBanner(
             title = "Paramount+ GRATIS",
@@ -368,27 +364,160 @@ private fun BannerCard(banner: PromoBanner) {
                 contentScale = ContentScale.Crop
             )
             
-            // Contenido del banner
+            // Contenido especial para DIRECTV GO
+            if (banner.title == "DIRECTV GO") {
+                DirectTVBannerContent()
+            } else {
+                // Contenido del banner estándar
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = banner.title,
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = LinageWhite
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = banner.description,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = LinageWhite.copy(alpha = 0.9f)
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Contenido especializado para el banner de DIRECTV GO con layout específico
+ */
+@Composable
+private fun DirectTVBannerContent() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp)
+            .semantics { 
+                contentDescription = "Banner de DIRECTV GO, streaming premium incluido como aliado oficial"
+            }
+    ) {
+        // Badge "ALIADO OFICIAL" arriba
+        Card(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = LinageOrange
+            ),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Text(
+                text = "ALIADO OFICIAL",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = LinageWhite,
+                    letterSpacing = 0.5.sp
+                ),
+                modifier = Modifier
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .semantics { 
+                        contentDescription = "Badge aliado oficial"
+                    }
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 40.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Logo DIRECTV GO a la izquierda con efecto glassmorphic
+            Card(
+                modifier = Modifier
+                    .size(70.dp)
+                    .semantics { 
+                        contentDescription = "Logo de DIRECTV GO"
+                    },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = LinageWhite.copy(alpha = 0.85f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.directv_go),
+                        contentDescription = "Logo de DIRECTV GO",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
+
+            // Contenido de texto central
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.Center
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = banner.title,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = LinageWhite
+                    text = "DIRECTV GO",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Black,
+                        color = LinageWhite,
+                        fontSize = 22.sp
                     )
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = banner.description,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = LinageWhite.copy(alpha = 0.9f)
+                    text = "Streaming premium incluido",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = LinageWhite.copy(alpha = 0.9f),
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center
                     )
                 )
+            }
+
+            // CTA pequeño con play icon a la derecha
+            Card(
+                modifier = Modifier
+                    .size(44.dp)
+                    .semantics { 
+                        contentDescription = "Botón reproducir para acceder a DIRECTV GO"
+                        role = Role.Button
+                    },
+                shape = CircleShape,
+                colors = CardDefaults.cardColors(
+                    containerColor = LinageWhite.copy(alpha = 0.9f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "▶️",
+                        fontSize = 18.sp
+                    )
+                }
             }
         }
     }
@@ -596,6 +725,13 @@ private fun BenefitCard(benefit: HomeBenefit) {
 private fun BusinessPartnersSection() {
     val partners = listOf(
         BusinessPartner(
+            name = "Win Sports Max",
+            emoji = "📺",
+            discount = "INCLUIDO",
+            description = "Deportes en vivo gratis",
+            backgroundColor = Color(0xFFE8F5E8)
+        ),
+        BusinessPartner(
             name = "Lyon Sport",
             emoji = "👕",
             discount = "25% OFF",
@@ -608,13 +744,6 @@ private fun BusinessPartnersSection() {
             discount = "3 MESES",
             description = "Streaming premium gratis",
             backgroundColor = Color(0xFFFFE0E0)
-        ),
-        BusinessPartner(
-            name = "Deportes & Más",
-            emoji = "⚽",
-            discount = "15% OFF",
-            description = "Equipos deportivos",
-            backgroundColor = Color(0xFFE8F5E8)
         )
     )
 
@@ -885,169 +1014,67 @@ private fun QuickAccessCard(
     }
 }
 
+
 /**
- * Sección especial para DIRECTV GO - Socio Estratégico
+ * Sección de Soporte con enlace a WhatsApp
  */
 @Composable
-private fun DirectTVPartnerSection() {
-    var isPressed by remember { mutableStateOf(false) }
-    
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "directv_scale"
-    )
+private fun SupportAccessSection(onSupportClick: () -> Unit) {
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
-        // Header de la sección con estilo especial
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "⭐",
-                fontSize = 24.sp
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Socio Estratégico",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = LinageOrangeDark
-                )
-            )
-        }
-        
         Text(
-            text = "Entretenimiento premium para nuestros clientes",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = LinageGray
+            text = "Asistencia",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = LinageOrangeDark
             ),
-            modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        // Tarjeta especial de DIRECTV GO con estilo Frutiger Aero
+        // Botón de WhatsApp con estilo Frutiger Aero
         Card(
-            onClick = { isPressed = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(140.dp)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                },
+            onClick = {
+                val whatsappIntent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://api.whatsapp.com/send/?phone=573024478864&text=Hola%2C+quiero+saber+m%C3%A1s+sobre+el+servicio&type=phone_number&app_absent=0")
+                )
+                context.startActivity(whatsappIntent)
+            },
+            modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
                 containerColor = LinageWhite
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
-            shape = RoundedCornerShape(24.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(20.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .background(
                         Brush.horizontalGradient(
                             colors = listOf(
-                                Color(0xFFE3F2FD), // Azul claro
-                                Color(0xFFF3E5F5), // Rosa claro
-                                LinageOrangeSoft    // Naranja suave Linage
-                            ),
-                            startX = 0f,
-                            endX = Float.POSITIVE_INFINITY
+                                Color(0xFF25D366).copy(alpha = 0.1f),
+                                Color(0xFF128C7E).copy(alpha = 0.05f),
+                                LinageOrangeSoft.copy(alpha = 0.1f)
+                            )
                         )
                     )
+                    .padding(20.dp)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Logo de DIRECTV GO con marco glassmorphic
+                    // Icono de WhatsApp con efecto glassmorphic
                     Card(
-                        modifier = Modifier.size(80.dp),
-                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.size(60.dp),
+                        shape = RoundedCornerShape(18.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = LinageWhite.copy(alpha = 0.9f)
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.directv_go),
-                                contentDescription = "DIRECTV GO Logo",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
-                            )
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.width(20.dp))
-                    
-                    // Contenido de texto
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        // Badge de "ALIADO OFICIAL"
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = LinageOrange
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text(
-                                text = "ALIADO OFICIAL",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = LinageWhite,
-                                    letterSpacing = 0.5.sp
-                                ),
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            )
-                        }
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        Text(
-                            text = "DIRECTV GO",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1976D2) // Azul DIRECTV
-                            )
-                        )
-                        
-                        Text(
-                            text = "Streaming premium incluido",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = LinageGray,
-                                fontWeight = FontWeight.Medium
-                            )
-                        )
-                        
-                        Text(
-                            text = "Miles de contenidos al alcance de tu mano",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = LinageGray.copy(alpha = 0.8f)
-                            )
-                        )
-                    }
-                    
-                    // Icono de acción con efecto glassmorphic
-                    Card(
-                        modifier = Modifier.size(44.dp),
-                        shape = CircleShape,
-                        colors = CardDefaults.cardColors(
-                            containerColor = LinageOrange.copy(alpha = 0.9f)
+                            containerColor = Color(0xFF25D366).copy(alpha = 0.9f)
                         ),
                         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                     ) {
@@ -1056,31 +1083,63 @@ private fun DirectTVPartnerSection() {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "▶️",
-                                fontSize = 20.sp
+                                text = "💬",
+                                fontSize = 28.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Contenido de texto
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Asistente WhatsApp",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF128C7E)
+                            )
+                        )
+                        Text(
+                            text = "Chatea con nuestros expertos",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = LinageGray,
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                        Text(
+                            text = "+57 302 447 8864",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = LinageGray.copy(alpha = 0.8f)
+                            )
+                        )
+                    }
+
+                    // Icono de acción
+                    Card(
+                        modifier = Modifier.size(40.dp),
+                        shape = CircleShape,
+                        colors = CardDefaults.cardColors(
+                            containerColor = LinageOrange.copy(alpha = 0.9f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "→",
+                                fontSize = 18.sp,
+                                color = LinageWhite,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
                 }
             }
-        }
-        
-        // Texto descriptivo adicional con estilo sutil
-        Text(
-            text = "🔥 Disponible para todos nuestros clientes de fibra óptica",
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = LinageOrangeDark,
-                fontWeight = FontWeight.Medium
-            ),
-            modifier = Modifier.padding(top = 12.dp),
-            textAlign = TextAlign.Center
-        )
-    }
-    
-    LaunchedEffect(isPressed) {
-        if (isPressed) {
-            delay(200)
-            isPressed = false
         }
     }
 }
