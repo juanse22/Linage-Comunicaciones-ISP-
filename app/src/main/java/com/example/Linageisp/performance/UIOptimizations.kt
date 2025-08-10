@@ -4,10 +4,12 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -21,6 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.cos
 import kotlin.math.sin
+import com.example.Linageisp.performance.core.DeviceCapabilityDetector
 
 /**
  * Optimizaciones de renderizado y UI para reducir overdraw y mejorar performance visual
@@ -32,7 +35,7 @@ import kotlin.math.sin
  */
 fun Modifier.optimizedClip(
     shape: Shape,
-    deviceTier: DeviceCapabilityDetector.PerformanceTier? = null
+    deviceTier: com.example.Linageisp.performance.core.DeviceCapabilityDetector.PerformanceTier? = null
 ): Modifier = composed {
     // En dispositivos LOW_END, usar clipping más simple
     when (deviceTier) {
@@ -40,7 +43,7 @@ fun Modifier.optimizedClip(
             // Usar RectangleShape o formas simples para reducir cálculos
             if (shape is RoundedCornerShape) {
                 val cornerSize = shape.topStart
-                if (cornerSize == 0.dp) {
+                if (cornerSize == CornerSize(0.dp)) {
                     this.clip(RectangleShape)
                 } else {
                     this.clip(RoundedCornerShape(cornerSize))

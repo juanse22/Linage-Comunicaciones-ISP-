@@ -7,11 +7,13 @@ import android.graphics.BitmapFactory
 import android.os.Debug
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import java.io.ByteArrayOutputStream
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.min
+import com.example.Linageisp.performance.core.DeviceCapabilityDetector
 
 /**
  * Administrador de memoria y recursos para optimización de rendimiento extremo
@@ -386,6 +388,13 @@ class MemoryResourceManager private constructor(
      * Limpieza de emergencia para memoria crítica
      */
     private suspend fun performEmergencyCleanup() = withContext(Dispatchers.Default) {
+        performEmergencyCleanupSync()
+    }
+    
+    /**
+     * Limpieza de emergencia síncrona para memoria crítica
+     */
+    private fun performEmergencyCleanupSync() {
         // Limpiar todo el caché de bitmaps
         memoryCache.values.forEach { weakRef ->
             weakRef.get()?.let { bitmap ->
@@ -425,8 +434,9 @@ class MemoryResourceManager private constructor(
      * Limpia todos los recursos y detiene el monitoreo
      */
     fun cleanup() {
+        // Realizar limpieza síncrona antes de cancelar el scope
+        performEmergencyCleanupSync()
         cleanupScope.cancel()
-        performEmergencyCleanup()
     }
     
     /**

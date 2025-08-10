@@ -33,6 +33,7 @@ import coil.transform.Transformation
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.io.File
+import com.example.Linageisp.performance.core.DeviceCapabilityDetector as CoreDeviceCapabilityDetector
 
 /**
  * Sistema de carga lazy optimizado para imágenes con adaptación por dispositivo
@@ -41,7 +42,7 @@ import java.io.File
 class LazyImageLoader private constructor(
     private val context: Context,
     private val memoryManager: MemoryResourceManager,
-    private val deviceCapabilities: DeviceCapabilityDetector.DeviceCapabilities
+    private val deviceCapabilities: CoreDeviceCapabilityDetector.DeviceCapabilities
 ) {
     
     companion object {
@@ -51,7 +52,7 @@ class LazyImageLoader private constructor(
         fun getInstance(
             context: Context,
             memoryManager: MemoryResourceManager,
-            deviceCapabilities: DeviceCapabilityDetector.DeviceCapabilities
+            deviceCapabilities: CoreDeviceCapabilityDetector.DeviceCapabilities
         ): LazyImageLoader {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: LazyImageLoader(
@@ -63,26 +64,26 @@ class LazyImageLoader private constructor(
         }
         
         // Configuración de caché por tier de dispositivo
-        private fun getCacheConfig(tier: DeviceCapabilityDetector.PerformanceTier) = when (tier) {
-            DeviceCapabilityDetector.PerformanceTier.LOW_END -> CacheConfig(
+        private fun getCacheConfig(tier: CoreDeviceCapabilityDetector.PerformanceTier) = when (tier) {
+            CoreDeviceCapabilityDetector.PerformanceTier.LOW_END -> CacheConfig(
                 memoryPercent = 0.15, // 15% de RAM disponible
                 diskSizeMB = 50,
                 maxImageWidth = 800,
                 maxImageHeight = 600
             )
-            DeviceCapabilityDetector.PerformanceTier.MID_END -> CacheConfig(
+            CoreDeviceCapabilityDetector.PerformanceTier.MID_END -> CacheConfig(
                 memoryPercent = 0.25, // 25% de RAM disponible  
                 diskSizeMB = 100,
                 maxImageWidth = 1200,
                 maxImageHeight = 900
             )
-            DeviceCapabilityDetector.PerformanceTier.HIGH_END -> CacheConfig(
+            CoreDeviceCapabilityDetector.PerformanceTier.HIGH_END -> CacheConfig(
                 memoryPercent = 0.35, // 35% de RAM disponible
                 diskSizeMB = 200,
                 maxImageWidth = 1920,
                 maxImageHeight = 1440
             )
-            DeviceCapabilityDetector.PerformanceTier.PREMIUM -> CacheConfig(
+            CoreDeviceCapabilityDetector.PerformanceTier.PREMIUM -> CacheConfig(
                 memoryPercent = 0.4, // 40% de RAM disponible
                 diskSizeMB = 300,
                 maxImageWidth = 2560,
@@ -129,8 +130,8 @@ class LazyImageLoader private constructor(
                 }
             }
             .respectCacheHeaders(false)
-            .allowHardware(deviceCapabilities.tier != DeviceCapabilityDetector.PerformanceTier.LOW_END)
-            .crossfade(if (deviceCapabilities.recommendedAnimationScale > 0.8f) 300 else 0)
+            .allowHardware(deviceCapabilities.tier != CoreDeviceCapabilityDetector.PerformanceTier.LOW_END)
+            .crossfade(if (deviceCapabilities.recommendedSettings.recommendedAnimationScale > 0.8f) 300 else 0)
             .build()
     }
     
@@ -163,7 +164,7 @@ class LazyImageLoader private constructor(
             .transformations(AdaptiveResizeTransformation())
             .memoryCacheKey("${data}_${finalWidth}_${finalHeight}_${deviceCapabilities.tier}")
             .diskCacheKey("${data}_adaptive")
-            .allowHardware(deviceCapabilities.tier != DeviceCapabilityDetector.PerformanceTier.LOW_END)
+            .allowHardware(deviceCapabilities.tier != CoreDeviceCapabilityDetector.PerformanceTier.LOW_END)
             .build()
     }
     
@@ -223,12 +224,13 @@ fun OptimizedAsyncImage(
 ) {
     val context = LocalContext.current
     val memoryManager = remember { 
-        MemoryResourceManager.getInstance(
-            context,
-            DeviceCapabilityDetector(context).detectCapabilities()
-        ) 
+        val detector = CoreDeviceCapabilityDetector(context)
+        val capabilities = runBlocking { detector.detectCapabilities() }
+        MemoryResourceManager.getInstance(context, capabilities)
     }
-    val deviceCapabilities = remember { DeviceCapabilityDetector(context).detectCapabilities() }
+    val deviceCapabilities = remember { 
+        runBlocking { CoreDeviceCapabilityDetector(context).detectCapabilities() }
+    }
     val imageLoader = remember { 
         LazyImageLoader.getInstance(context, memoryManager, deviceCapabilities) 
     }
@@ -287,10 +289,13 @@ fun OptimizedAsyncImage(
  */
 @Composable
 private fun DefaultImagePlaceholder() {
-    val deviceCapabilities = DeviceCapabilityDetector(LocalContext.current).detectCapabilities()
+    val context = LocalContext.current
+    val deviceCapabilities = remember {
+        runBlocking { CoreDeviceCapabilityDetector(context).detectCapabilities() }
+    }
     
     // Solo mostrar shimmer en dispositivos con capacidad suficiente
-    if (deviceCapabilities.recommendedAnimationScale >= 0.8f) {
+    if (deviceCapabilities.recommendedSettings.recommendedAnimationScale >= 0.8f) {
         ShimmerPlaceholder()
     } else {
         StaticPlaceholder()
@@ -385,14 +390,17 @@ fun OptimizedImageGrid(
     columns: Int = 2,
     onImageClick: (Int, Any) -> Unit = { _, _ -> }
 ) {
-    val deviceCapabilities = DeviceCapabilityDetector(LocalContext.current).detectCapabilities()
+    val context = LocalContext.current
+    val deviceCapabilities = remember {
+        runBlocking { CoreDeviceCapabilityDetector(context).detectCapabilities() }
+    }
     
     // Limitar número de imágenes visibles según capacidad del dispositivo
     val maxImages = when (deviceCapabilities.tier) {
-        DeviceCapabilityDetector.PerformanceTier.LOW_END -> 8
-        DeviceCapabilityDetector.PerformanceTier.MID_END -> 16
-        DeviceCapabilityDetector.PerformanceTier.HIGH_END -> 24
-        DeviceCapabilityDetector.PerformanceTier.PREMIUM -> 32
+        CoreDeviceCapabilityDetector.PerformanceTier.LOW_END -> 8
+        CoreDeviceCapabilityDetector.PerformanceTier.MID_END -> 16
+        CoreDeviceCapabilityDetector.PerformanceTier.HIGH_END -> 24
+        CoreDeviceCapabilityDetector.PerformanceTier.PREMIUM -> 32
     }
     
     val visibleImages = images.take(maxImages)

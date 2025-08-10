@@ -382,7 +382,7 @@ fun LowPowerModeIndicator(
             colors = androidx.compose.material3.CardDefaults.cardColors(
                 containerColor = when (powerMode) {
                     LowPowerMode.PowerMode.POWER_SAVE -> androidx.compose.ui.graphics.Color.Yellow.copy(alpha = 0.2f)
-                    LowPowerMode.PowerMode.EXTREME_SAVE -> androidx.compose.ui.graphics.Color.Orange.copy(alpha = 0.2f)
+                    LowPowerMode.PowerMode.EXTREME_SAVE -> androidx.compose.ui.graphics.Color(0xFFFFA500).copy(alpha = 0.2f)
                     LowPowerMode.PowerMode.EMERGENCY -> androidx.compose.ui.graphics.Color.Red.copy(alpha = 0.2f)
                     else -> androidx.compose.ui.graphics.Color.Gray.copy(alpha = 0.1f)
                 }
