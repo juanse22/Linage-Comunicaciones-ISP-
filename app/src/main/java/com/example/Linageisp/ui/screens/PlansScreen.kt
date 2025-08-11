@@ -18,6 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.Linageisp.R
 import com.example.Linageisp.data.Plan
@@ -25,6 +26,9 @@ import com.example.Linageisp.ui.theme.LinageOrange
 import com.example.Linageisp.ui.theme.LinageGray
 import com.example.Linageisp.ui.theme.LinageWhite
 import com.example.Linageisp.viewmodel.PlanViewModel
+import com.example.Linageisp.FirebaseManager
+import com.example.Linageisp.PerformanceIntegration
+import com.example.Linageisp.TraceScreenLoad
 
 /**
  * Pantalla principal que muestra la lista de planes de internet
@@ -37,74 +41,104 @@ fun PlansScreen(
     onPlanSelected: (Plan) -> Unit,
     viewModel: PlanViewModel = viewModel()
 ) {
+    val context = LocalContext.current
+    val performanceIntegration = remember { PerformanceIntegration.getInstance(context) }
     val uiState by viewModel.uiState.collectAsState()
     
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Barra superior con navegación
-        TopAppBar(
-            title = {
-                Text(
-                    text = "Planes de Internet",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Volver al inicio"
-                    )
-                }
-            },
-            actions = {
-                IconButton(onClick = { viewModel.retryLoading() }) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Actualizar planes"
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = LinageOrange,
-                titleContentColor = LinageWhite,
-                navigationIconContentColor = LinageWhite,
-                actionIconContentColor = LinageWhite
+    // Firebase Analytics - track screen view
+    LaunchedEffect(Unit) {
+        FirebaseManager.logScreenView("PlansScreen", "PlansScreen")
+    }
+    
+    // Track plan scraping performance
+    LaunchedEffect(uiState.isLoading) {
+        if (uiState.isLoading) {
+            val startTime = System.currentTimeMillis()
+            val trace = performanceIntegration.tracePlanScraping()
+            
+            // Wait for loading to complete
+            while (uiState.isLoading) {
+                kotlinx.coroutines.delay(100)
+            }
+            
+            val scrapingTime = System.currentTimeMillis() - startTime
+            performanceIntegration.completePlanScraping(
+                trace, 
+                uiState.plans.size, 
+                scrapingTime, 
+                uiState.errorMessage == null
             )
-        )
-        
-        // Contenido principal con estados
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+        }
+    }
+    
+    TraceScreenLoad(screenName = "PlansScreen") {
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            when {
-                uiState.isLoading -> {
-                    LoadingState()
-                }
-                
-                uiState.errorMessage != null -> {
-                    ErrorState(
-                        errorMessage = uiState.errorMessage!!,
-                        onRetry = { viewModel.retryLoading() }
+            // Barra superior con navegación
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Planes de Internet",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        )
                     )
-                }
-                
-                uiState.plans.isNotEmpty() -> {
-                    PlansList(
-                        plans = uiState.plans,
-                        onPlanSelected = onPlanSelected
-                    )
-                }
-                
-                else -> {
-                    EmptyState(
-                        onRefresh = { viewModel.retryLoading() }
-                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Volver al inicio"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.retryLoading() }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Actualizar planes"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = LinageOrange,
+                    titleContentColor = LinageWhite,
+                    navigationIconContentColor = LinageWhite,
+                    actionIconContentColor = LinageWhite
+                )
+            )
+            
+            // Contenido principal con estados
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                when {
+                    uiState.isLoading -> {
+                        LoadingState()
+                    }
+                    
+                    uiState.errorMessage != null -> {
+                        ErrorState(
+                            errorMessage = uiState.errorMessage!!,
+                            onRetry = { viewModel.retryLoading() }
+                        )
+                    }
+                    
+                    uiState.plans.isNotEmpty() -> {
+                        PlansList(
+                            plans = uiState.plans,
+                            onPlanSelected = onPlanSelected
+                        )
+                    }
+                    
+                    else -> {
+                        EmptyState(
+                            onRefresh = { viewModel.retryLoading() }
+                        )
+                    }
                 }
             }
         }
@@ -218,7 +252,11 @@ private fun PlanCard(
     onPlanClick: () -> Unit
 ) {
     Card(
-        onClick = onPlanClick,
+        onClick = { 
+            // Track plan view event
+            FirebaseManager.logPlanViewEvent(plan.nombre, plan.precio, plan.velocidad)
+            onPlanClick()
+        },
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface

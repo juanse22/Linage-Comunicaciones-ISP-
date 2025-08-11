@@ -26,9 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import com.example.Linageisp.R
 import com.example.Linageisp.ui.components.*
 import com.example.Linageisp.ui.theme.*
+import com.example.Linageisp.PerformanceIntegration
+import com.example.Linageisp.FirebaseManager
+import com.example.Linageisp.TraceScreenLoad
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,94 +40,124 @@ import kotlinx.coroutines.delay
 fun SpeedTestScreen(
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val performanceIntegration = remember { PerformanceIntegration.getInstance(context) }
+    
     var testState by remember { mutableStateOf(SpeedTestState.IDLE) }
     var currentResult by remember { mutableStateOf(SpeedTestResult()) }
     var testHistory by remember { mutableStateOf(generateMockHistory()) }
     var showHistory by remember { mutableStateOf(false) }
     
+    // Firebase Analytics - track screen view
+    LaunchedEffect(Unit) {
+        FirebaseManager.logScreenView("SpeedTestScreen", "SpeedTestScreen")
+    }
+    
     LaunchedEffect(testState) {
         if (testState == SpeedTestState.TESTING) {
-            // Simulate download test
-            for (i in 1..50) {
-                currentResult = currentResult.copy(download = i * 2f)
-                delay(100)
+            val startTime = System.currentTimeMillis()
+            val speedTestTrace = performanceIntegration.traceSpeedTest()
+            
+            try {
+                // Simulate download test
+                for (i in 1..50) {
+                    currentResult = currentResult.copy(download = i * 2f)
+                    delay(100)
+                }
+                
+                // Simulate upload test
+                for (i in 1..30) {
+                    currentResult = currentResult.copy(upload = i * 1.5f)
+                    delay(80)
+                }
+                
+                // Set ping
+                val ping = (15..50).random()
+                currentResult = currentResult.copy(ping = ping)
+                testState = SpeedTestState.COMPLETED
+                
+                // Complete Firebase trace
+                val testDuration = System.currentTimeMillis() - startTime
+                performanceIntegration.completeSpeedTest(
+                    speedTestTrace,
+                    currentResult.download.toDouble(),
+                    currentResult.upload.toDouble(),
+                    ping.toLong(),
+                    testDuration
+                )
+                
+                // Add to history
+                testHistory = listOf(currentResult) + testHistory
+                
+            } catch (e: Exception) {
+                FirebaseManager.recordException(e)
+                testState = SpeedTestState.IDLE
             }
-            
-            // Simulate upload test
-            for (i in 1..30) {
-                currentResult = currentResult.copy(upload = i * 1.5f)
-                delay(80)
-            }
-            
-            // Set ping
-            currentResult = currentResult.copy(ping = (15..50).random())
-            testState = SpeedTestState.COMPLETED
-            
-            // Add to history
-            testHistory = listOf(currentResult) + testHistory
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        LinageBackground,
-                        Color.White
+    TraceScreenLoad(screenName = "SpeedTestScreen") {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            LinageBackground,
+                            Color.White
+                        )
                     )
+                )
+        ) {
+            // Top bar
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.speed_test_title),
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = LinageOrange
+                        )
+                    )
+                },
+                actions = {
+                    IconButton(
+                        onClick = { showHistory = !showHistory }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = stringResource(R.string.speed_test_history),
+                            tint = LinageOrange
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
                 )
             )
-    ) {
-        // Top bar
-        TopAppBar(
-            title = {
-                Text(
-                    text = stringResource(R.string.speed_test_title),
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = LinageOrange
-                    )
+
+            if (showHistory) {
+                SpeedTestHistoryContent(
+                    history = testHistory,
+                    onBack = { showHistory = false }
                 )
-            },
-            actions = {
-                IconButton(
-                    onClick = { showHistory = !showHistory }
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.History,
-                        contentDescription = stringResource(R.string.speed_test_history),
-                        tint = LinageOrange
+                    SpeedTestMainContent(
+                        testState = testState,
+                        currentResult = currentResult,
+                        onStartTest = {
+                            testState = SpeedTestState.TESTING
+                            currentResult = SpeedTestResult()
+                        },
+                        onShareResult = {
+                            // Share functionality would go here
+                        }
                     )
                 }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent
-            )
-        )
-
-        if (showHistory) {
-            SpeedTestHistoryContent(
-                history = testHistory,
-                onBack = { showHistory = false }
-            )
-        } else {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                SpeedTestMainContent(
-                    testState = testState,
-                    currentResult = currentResult,
-                    onStartTest = {
-                        testState = SpeedTestState.TESTING
-                        currentResult = SpeedTestResult()
-                    },
-                    onShareResult = {
-                        // Share functionality would go here
-                    }
-                )
             }
         }
     }
@@ -424,6 +458,27 @@ private fun HistoryItemCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun LoadingSpeedMeter() {
+    Box(
+        modifier = Modifier.size(200.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(
+            color = LinageOrange,
+            strokeWidth = 8.dp,
+            modifier = Modifier.size(180.dp)
+        )
+        Text(
+            text = "Probando...",
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Medium,
+                color = LinageOrange
+            )
+        )
     }
 }
 

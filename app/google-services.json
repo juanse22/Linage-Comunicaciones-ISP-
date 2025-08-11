@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "976276332842",
+    "project_id": "linage-fb8cf",
+    "storage_bucket": "linage-fb8cf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:976276332842:android:d99f4130167ff066acbe53",
+        "android_client_info": {
+          "package_name": "com.example.Linageisp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAt3RB3bzA_PwmN_vd_QozY5hfz04wEIRA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

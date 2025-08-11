@@ -15,10 +15,19 @@ import com.example.Linageisp.navigation.LinageNavHost
 import com.example.Linageisp.ui.components.LinageBottomNavigationBar
 import com.example.Linageisp.ui.theme.LinageTheme
 import com.example.Linageisp.viewmodel.PlanViewModel
+import com.google.firebase.FirebaseApp
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.perf.FirebasePerformance
+import android.util.Log
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Initialize Firebase
+        initializeFirebase()
+        
         enableEdgeToEdge()
         setContent {
             LinageTheme(dynamicColor = false) {
@@ -26,9 +35,34 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LinageApp()
+                    PerformanceIntegrationProvider {
+                        LinageApp()
+                    }
                 }
             }
+        }
+    }
+    
+    private fun initializeFirebase() {
+        try {
+            // Initialize Firebase App
+            FirebaseApp.initializeApp(this)
+            
+            // Initialize Firebase Analytics
+            FirebaseAnalytics.getInstance(this)
+            
+            // Initialize Firebase Crashlytics
+            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
+            
+            // Initialize Firebase Performance Monitoring
+            FirebasePerformance.getInstance().isPerformanceCollectionEnabled = true
+            
+            Log.d("Firebase", "Firebase initialized successfully")
+            Log.d("FirebasePerformance", "Performance Monitoring enabled")
+            
+        } catch (e: Exception) {
+            Log.e("Firebase", "Error initializing Firebase", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
         }
     }
 }

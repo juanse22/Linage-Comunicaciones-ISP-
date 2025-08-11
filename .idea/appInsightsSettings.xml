@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.Linageisp" />
+                  <option name="mobileSdkAppId" value="1:976276332842:android:d99f4130167ff066acbe53" />
+                  <option name="projectId" value="linage-fb8cf" />
+                  <option name="projectNumber" value="976276332842" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
