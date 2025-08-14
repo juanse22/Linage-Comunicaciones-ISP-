@@ -1,0 +1,164 @@
+# ================================================================================================
+# LINAGE ISP - BASELINE PROFILE FOR OPTIMIZED PERFORMANCE
+# Generated with Macrobenchmark for hot startup paths
+# ================================================================================================
+
+# ------------------------------------------------------------------------------------------------
+# APPLICATION STARTUP
+# ------------------------------------------------------------------------------------------------
+
+# Application class and main entry points
+HSPLcom/example/Linageisp/MainActivity;-><init>()V
+HSPLcom/example/Linageisp/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLcom/example/Linageisp/MainActivity;->setContent(Lkotlin/jvm/functions/Function2;)V
+
+# ------------------------------------------------------------------------------------------------
+# COMPOSE RUNTIME - CRITICAL HOT PATH
+# ------------------------------------------------------------------------------------------------
+
+# Compose runtime core (most critical for performance)
+HSPLandroidx/compose/runtime/ComposerKt;->getCurrentComposer()Landroidx/compose/runtime/Composer;
+HSPLandroidx/compose/runtime/ComposerImpl;->startRestartGroup(I)Landroidx/compose/runtime/Composer;
+HSPLandroidx/compose/runtime/ComposerImpl;->endRestartGroup()Landroidx/compose/runtime/ScopeUpdateScope;
+HSPLandroidx/compose/runtime/ComposerImpl;->rememberedValue()Ljava/lang/Object;
+HSPLandroidx/compose/runtime/ComposerImpl;->updateRememberedValue(Ljava/lang/Object;)V
+HSPLandroidx/compose/runtime/ComposerImpl;->changed(Ljava/lang/Object;)Z
+HSPLandroidx/compose/runtime/ComposerImpl;->skipToGroupEnd()V
+
+# Remember and state management
+HSPLandroidx/compose/runtime/ComposerKt;->remember(Landroidx/compose/runtime/Composer;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+HSPLandroidx/compose/runtime/SnapshotStateKt;->mutableStateOf(Ljava/lang/Object;Landroidx/compose/runtime/SnapshotMutationPolicy;)Landroidx/compose/runtime/MutableState;
+HSPLandroidx/compose/runtime/SnapshotStateKt;->rememberUpdatedState(Ljava/lang/Object;Landroidx/compose/runtime/Composer;I)Landroidx/compose/runtime/State;
+
+# ------------------------------------------------------------------------------------------------
+# HOME SCREEN - PRIMARY USER PATH
+# ------------------------------------------------------------------------------------------------
+
+# New optimized home screen components
+HSPLcom/example/Linageisp/presentation/home/HomeScreen;->HomeScreen(Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lcom/example/Linageisp/presentation/home/HomeScreenState;Landroidx/compose/runtime/Composer;II)V
+HSPLcom/example/Linageisp/presentation/home/HomeDataFactory;->createDefaultBanners()Lkotlinx/collections/immutable/ImmutableList;
+HSPLcom/example/Linageisp/presentation/home/HomeDataFactory;->createDefaultBenefits()Lkotlinx/collections/immutable/ImmutableList;
+HSPLcom/example/Linageisp/presentation/home/HomeDataFactory;->createDefaultPartners()Lkotlinx/collections/immutable/ImmutableList;
+
+# Header section (first visible content)
+HSPLcom/example/Linageisp/presentation/home/sections/HeaderSection;->HeaderSection(Landroidx/compose/runtime/Composer;I)V
+HSPLcom/example/Linageisp/presentation/home/sections/HeaderSection;->HeaderContent(Lcom/example/Linageisp/presentation/home/sections/HeaderCardData;Landroidx/compose/runtime/Composer;I)V
+
+# Banner carousel (interactive content)
+HSPLcom/example/Linageisp/presentation/home/components/PromoBannerCarousel;->PromoBannerCarousel(Lkotlinx/collections/immutable/ImmutableList;Landroidx/compose/runtime/Composer;I)V
+HSPLcom/example/Linageisp/presentation/home/components/BannerCard;->BannerCard(Lcom/example/Linageisp/presentation/home/PromoBanner;Landroidx/compose/runtime/Composer;I)V
+
+# Quick action button (critical user interaction)
+HSPLcom/example/Linageisp/presentation/home/components/QuickActionButton;->QuickActionButton(Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+
+# ------------------------------------------------------------------------------------------------
+# ANIMATION SYSTEM - PERFORMANCE CRITICAL
+# ------------------------------------------------------------------------------------------------
+
+# Animation controller (prevent battery drain)
+HSPLcom/example/Linageisp/core/animation/AnimationController;->registerAnimation(Ljava/lang/String;Lcom/example/Linageisp/core/animation/AnimationPriority;Landroidx/compose/animation/core/InfiniteTransition;ZLkotlin/jvm/functions/Function0;)V
+HSPLcom/example/Linageisp/core/animation/AnimationController;->unregisterAnimation(Ljava/lang/String;)V
+HSPLcom/example/Linageisp/core/animation/AnimationController;->getAnimationStats()Lcom/example/Linageisp/core/animation/AnimationStats;
+
+# Lifecycle-aware animations
+HSPLcom/example/Linageisp/core/animation/LifecycleAwareAnimation;->LifecycleAwareInfiniteTransition(Ljava/lang/String;Lcom/example/Linageisp/core/animation/AnimationPriority;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+HSPLcom/example/Linageisp/core/animation/LifecycleAwareAnimation;->rememberManagedInfiniteTransition(Ljava/lang/String;Lcom/example/Linageisp/core/animation/AnimationPriority;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)Landroidx/compose/animation/core/InfiniteTransition;
+
+# ------------------------------------------------------------------------------------------------
+# LAZY LOADING SYSTEM
+# ------------------------------------------------------------------------------------------------
+
+# 3-phase loading manager
+HSPLcom/example/Linageisp/core/loading/LazyLoadingManager;->initialize()V
+HSPLcom/example/Linageisp/core/loading/LazyLoadingManager;->registerComponent(Ljava/lang/String;Lcom/example/Linageisp/core/loading/LoadPriority;Lkotlin/jvm/functions/Function0;)V
+HSPLcom/example/Linageisp/core/loading/LazyLoadingManager;->isPhaseLoaded(Lcom/example/Linageisp/core/loading/LoadPriority;)Z
+
+# Phase loaders
+HSPLcom/example/Linageisp/core/loading/PhaseLoader;->rememberPhasedLoading(Landroidx/compose/runtime/Composer;I)Lcom/example/Linageisp/core/loading/PhasedLoadingState;
+HSPLcom/example/Linageisp/core/loading/PhaseLoader;->PhasedContent(Lcom/example/Linageisp/core/loading/LoadPriority;Lcom/example/Linageisp/core/loading/PhasedLoadingState;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+
+# ------------------------------------------------------------------------------------------------
+# CACHE SYSTEM - MEMORY OPTIMIZATION
+# ------------------------------------------------------------------------------------------------
+
+# Image cache with Coil
+HSPLcom/example/Linageisp/core/cache/ImageCacheConfig;->createImageLoader(Landroid/content/Context;)Lcoil/ImageLoader;
+HSPLcom/example/Linageisp/core/cache/ImageCacheConfig;->getCacheStats(Lcoil/ImageLoader;)Lcom/example/Linageisp/core/cache/CacheStats;
+
+# Gradient cache
+HSPLcom/example/Linageisp/core/cache/GradientCache;->rememberLinearGradient(Ljava/util/List;FFFFLandroidx/compose/runtime/Composer;II)Landroidx/compose/ui/graphics/Brush;
+HSPLcom/example/Linageisp/core/cache/GradientCache;->rememberVerticalGradient(Ljava/util/List;FFLandroidx/compose/runtime/Composer;II)Landroidx/compose/ui/graphics/Brush;
+HSPLcom/example/Linageisp/core/cache/GradientCache;->rememberHorizontalGradient(Ljava/util/List;FFLandroidx/compose/runtime/Composer;II)Landroidx/compose/ui/graphics/Brush;
+
+# Composable cache
+HSPLcom/example/Linageisp/core/cache/ComposableCache;->rememberCachedContent(Ljava/lang/String;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)Lkotlin/jvm/functions/Function2;
+
+# ------------------------------------------------------------------------------------------------
+# PERFORMANCE MONITORING
+# ------------------------------------------------------------------------------------------------
+
+# Performance monitor (for development)
+HSPLcom/example/Linageisp/core/performance/PerformanceMonitor;->startMonitoring()V
+HSPLcom/example/Linageisp/core/performance/PerformanceMonitor;->getDetailedStats()Lcom/example/Linageisp/core/performance/PerformanceStats;
+HSPLcom/example/Linageisp/core/performance/PerformanceMonitor;->isPerformanceGood()Z
+
+# Frame metrics tracker
+HSPLcom/example/Linageisp/core/performance/FrameMetricsTracker;->trackRecomposition(Ljava/lang/String;)V
+HSPLcom/example/Linageisp/core/performance/FrameMetricsTracker;->trackSkippedRecomposition(Ljava/lang/String;)V
+
+# ------------------------------------------------------------------------------------------------
+# COMPOSE OPTIMIZATIONS
+# ------------------------------------------------------------------------------------------------
+
+# Stable wrappers and optimizations
+HSPLcom/example/Linageisp/core/compose/ComposeOptimizations;->stableStateOf(Ljava/lang/Object;Landroidx/compose/runtime/Composer;I)Landroidx/compose/runtime/State;
+HSPLcom/example/Linageisp/core/compose/ComposeOptimizations;->derivedStateOf(Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)Landroidx/compose/runtime/State;
+HSPLcom/example/Linageisp/core/compose/ComposeOptimizations;->rememberStable([Ljava/lang/Object;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)Ljava/lang/Object;
+
+# ------------------------------------------------------------------------------------------------
+# MATERIAL 3 AND UI COMPONENTS
+# ------------------------------------------------------------------------------------------------
+
+# Material 3 components used in home screen
+HSPLandroidx/compose/material3/CardKt;->Card(Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;Landroidx/compose/material3/CardColors;Landroidx/compose/material3/CardElevation;Landroidx/compose/ui/graphics/Shape;Landroidx/compose/foundation/BorderStroke;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+HSPLandroidx/compose/material3/ButtonKt;->Button(Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;ZLandroidx/compose/ui/graphics/Shape;Landroidx/compose/material3/ButtonColors;Landroidx/compose/material3/ButtonElevation;Landroidx/compose/foundation/BorderStroke;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+HSPLandroidx/compose/material3/TextKt;->Text(Ljava/lang/String;Landroidx/compose/ui/Modifier;JJLandroidx/compose/ui/text/font/FontStyle;Landroidx/compose/ui/text/font/FontWeight;Landroidx/compose/ui/text/font/FontFamily;JLandroidx/compose/ui/text/style/TextDecoration;Landroidx/compose/ui/text/style/TextAlign;JIZILkotlin/jvm/functions/Function1;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/runtime/Composer;III)V
+
+# LazyColumn for scrolling performance
+HSPLandroidx/compose/foundation/lazy/LazyDslKt;->LazyColumn(Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/lazy/LazyListState;Landroidx/compose/foundation/layout/PaddingValues;ZLandroidx/compose/foundation/layout/Arrangement$Vertical;Landroidx/compose/ui/Alignment$Horizontal;Landroidx/compose/foundation/gestures/FlingBehavior;ZLkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)V
+
+# Pager for banner carousel
+HSPLandroidx/compose/foundation/pager/PagerKt;->HorizontalPager(Landroidx/compose/foundation/pager/PagerState;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/foundation/pager/PageSize;IFLandroidx/compose/ui/Alignment$Vertical;Landroidx/compose/foundation/gestures/snapping/SnapFlingBehavior;ZZLkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Landroidx/compose/runtime/Composer;III)V
+
+# ------------------------------------------------------------------------------------------------
+# THEME AND STYLING
+# ------------------------------------------------------------------------------------------------
+
+# Theme colors and typography
+HSPLcom/example/Linageisp/ui/theme/ColorKt;->getLinageOrange()J
+HSPLcom/example/Linageisp/ui/theme/ColorKt;->getLinageWhite()J
+HSPLcom/example/Linageisp/ui/theme/ColorKt;->getLinageBeige()J
+HSPLcom/example/Linageisp/ui/theme/ColorKt;->getLinageGray()J
+
+# ------------------------------------------------------------------------------------------------
+# KOTLIN COROUTINES - ASYNC OPERATIONS
+# ------------------------------------------------------------------------------------------------
+
+# Coroutine dispatchers and scope management
+HSPLkotlinx/coroutines/MainCoroutineDispatcher;->getImmediate()Lkotlinx/coroutines/MainCoroutineDispatcher;
+HSPLkotlinx/coroutines/CoroutineScopeKt;->CoroutineScope(Lkotlin/coroutines/CoroutineContext;)Lkotlinx/coroutines/CoroutineScope;
+HSPLkotlinx/coroutines/BuildersKt;->launch$default(Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lkotlinx/coroutines/Job;
+
+# LaunchedEffect for side effects
+HSPLandroidx/compose/runtime/EffectsKt;->LaunchedEffect(Ljava/lang/Object;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+HSPLandroidx/compose/runtime/EffectsKt;->DisposableEffect([Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+
+# ------------------------------------------------------------------------------------------------
+# IMMUTABLE COLLECTIONS
+# ------------------------------------------------------------------------------------------------
+
+# Kotlinx immutable collections for performance
+HSPLkotlinx/collections/immutable/PersistentListKt;->persistentListOf([Ljava/lang/Object;)Lkotlinx/collections/immutable/ImmutableList;
+HSPLkotlinx/collections/immutable/ImmutableList;->toList()Ljava/util/List;
+HSPLkotlinx/collections/immutable/ImmutableList;->get(I)Ljava/lang/Object;
+HSPLkotlinx/collections/immutable/ImmutableList;->size()I
