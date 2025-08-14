@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
@@ -62,7 +63,7 @@ fun NewPlansScreen(
                 onRetry = { planViewModel.retryLoading() }
             )
             uiState.plans.isNotEmpty() -> {
-                // MOSTRAR TODOS LOS PLANES SIN FILTROS
+                // Lista VERTICAL de todos los planes con animaciones
                 PlansListHorizontalStyle(plans = uiState.plans)
             }
             else -> EmptyStateModern(onRefresh = { planViewModel.retryLoading() })
@@ -346,55 +347,63 @@ private fun EmptyStateModern(onRefresh: () -> Unit) {
 }
 
 /**
- * Lista horizontal por categorías como en las imágenes - SIN FILTROS
+ * Lista VERTICAL de planes con animaciones fluidas estilo Frutiger Aero
  */
 @Composable
 private fun PlansListHorizontalStyle(plans: List<Plan>) {
+    var isLoaded by remember { mutableStateOf(false) }
+    
+    // Activar animaciones después de un delay
+    LaunchedEffect(Unit) {
+        delay(200)
+        isLoaded = true
+    }
+    
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black), // FONDO NEGRO
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF1A1A1A),
+                        Color(0xFF0D0D0D)
+                    )
+                )
+            ),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(32.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // GRUPO: PLANES BÁSICOS
+        // Header con título elegante
         item {
-            PlanCategorySection(
-                title = "Planes Básicos",
-                plans = plans.filter { it.type == "Fibra Óptica" }
-            )
+            AnimatedVisibility(
+                visible = isLoaded,
+                enter = fadeIn(tween(800)) + slideInVertically(
+                    tween(800), initialOffsetY = { -it / 3 }
+                )
+            ) {
+                FuturisticHeader()
+            }
         }
         
-        // GRUPO: PLANES WIN+
-        item {
-            PlanCategorySection(
-                title = "Planes Win+ Premium",
-                plans = plans.filter { it.type == "Premium Win+" }
-            )
-        }
-        
-        // GRUPO: PLANES DIRECTV GO
-        item {
-            PlanCategorySection(
-                title = "Planes DIRECTV GO",
-                plans = plans.filter { it.type == "DIRECTV GO" }
-            )
-        }
-        
-        // GRUPO: PLANES NETFLIX
-        item {
-            PlanCategorySection(
-                title = "Planes Netflix",
-                plans = plans.filter { it.type == "Netflix" }
-            )
-        }
-        
-        // GRUPO: PLANES CON CÁMARAS (NUEVO)
-        item {
-            PlanCategorySection(
-                title = "Planes con Cámaras",
-                plans = plans.filter { it.type == "Cámaras" }
-            )
+        // Mostrar TODOS los planes verticalmente con animaciones
+        itemsIndexed(plans) { index, plan ->
+            AnimatedVisibility(
+                visible = isLoaded,
+                enter = fadeIn(
+                    tween(600, delayMillis = index * 100)
+                ) + slideInVertically(
+                    tween(600, delayMillis = index * 100),
+                    initialOffsetY = { it / 2 }
+                ) + scaleIn(
+                    tween(600, delayMillis = index * 100),
+                    initialScale = 0.8f
+                )
+            ) {
+                VerticalPlanCard(
+                    plan = plan,
+                    index = index
+                )
+            }
         }
         
         // Espaciado final para el bottom nav
@@ -404,30 +413,89 @@ private fun PlansListHorizontalStyle(plans: List<Plan>) {
     }
 }
 
+/**
+ * Header futurístico para la pantalla de planes
+ */
 @Composable
-private fun PlanCategorySection(title: String, plans: List<Plan>) {
-    if (plans.isNotEmpty()) {
-        Column {
-            // Título de categoría
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White // TEXTO BLANCO SOBRE FONDO NEGRO
-                ),
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            
-            // SCROLL HORIZONTAL COMO EN LAS IMÁGENES
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp)
-            ) {
-                itemsIndexed(plans) { index, plan ->
-                    PlanCardImageStyle(
-                        plan = plan,
-                        categoryIndex = index
+private fun FuturisticHeader() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            LinageOrange.copy(alpha = 0.15f),
+                            Color(0xFF6A1B9A).copy(alpha = 0.1f),
+                            LinageOrange.copy(alpha = 0.08f)
+                        )
                     )
+                )
+                .padding(24.dp)
+        ) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(
+                                Brush.radialGradient(
+                                    colors = listOf(LinageOrange, LinageOrangeDark)
+                                ),
+                                CircleShape
+                            )
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Planes de Internet",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Encuentra el plan perfecto con la mejor tecnología",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Indicadores de beneficios globales
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    listOf(
+                        "🚀" to "Fibra óptica",
+                        "⚡" to "Ultra rápido", 
+                        "🛠️" to "Soporte 24/7"
+                    ).forEach { (emoji, text) ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = emoji, fontSize = 16.sp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -435,173 +503,280 @@ private fun PlanCategorySection(title: String, plans: List<Plan>) {
 }
 
 /**
- * Tarjeta de plan con diseño EXACTO de las imágenes - gradientes naranjas, fondo negro
+ * Tarjeta de plan VERTICAL con estilo futurístico y animaciones fluidas
  */
 @Composable
-private fun PlanCardImageStyle(plan: Plan, categoryIndex: Int) {
+private fun VerticalPlanCard(plan: Plan, index: Int) {
     val context = LocalContext.current
+    var isPressed by remember { mutableStateOf(false) }
+    var isHovered by remember { mutableStateOf(false) }
     
-    // COLORES ESPECÍFICOS SEGÚN CATEGORÍA COMO EN LAS IMÁGENES
+    val scale by animateFloatAsState(
+        targetValue = when {
+            isPressed -> 0.95f
+            isHovered -> 1.02f
+            else -> 1f
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "vertical_plan_scale"
+    )
+    
+    val elevation by animateFloatAsState(
+        targetValue = if (isHovered) 16f else 12f,
+        animationSpec = tween(300),
+        label = "card_elevation"
+    )
+    
+    // Gradientes dinámicos por tipo de plan
     val gradientColors = when {
-        plan.type == "Fibra Óptica" -> listOf(
-            Color(0xFFFF8A00), Color(0xFFFFB347) // Naranja básico
+        plan.type.contains("Fibra Óptica") -> listOf(
+            LinageOrange.copy(alpha = 0.9f), 
+            LinageOrangeDark.copy(alpha = 0.7f)
         )
-        plan.type == "Premium Win+" -> listOf(
-            Color(0xFFFF7043), Color(0xFFFF8A65) // Naranja rojizo Win+
+        plan.type.contains("Win+") -> listOf(
+            Color(0xFFFF6B35).copy(alpha = 0.9f),
+            Color(0xFFFF8E53).copy(alpha = 0.7f)
         )
-        plan.type == "DIRECTV GO" -> listOf(
-            Color(0xFF424242), Color(0xFF616161) // Gris oscuro DIRECTV
+        plan.type.contains("DIRECTV") -> listOf(
+            Color(0xFF2E7D32).copy(alpha = 0.9f),
+            Color(0xFF4CAF50).copy(alpha = 0.7f)
         )
-        plan.type == "Netflix" -> listOf(
-            Color(0xFF8D4004), Color(0xFFBF6B04) // Marrón Netflix
+        plan.type.contains("Netflix") -> listOf(
+            Color(0xFFE50914).copy(alpha = 0.9f),
+            Color(0xFFFF5722).copy(alpha = 0.7f)
         )
-        plan.type == "Cámaras" -> listOf(
-            Color(0xFFE65100), Color(0xFFFF9800) // Naranja cámaras
+        plan.type.contains("Cámaras") -> listOf(
+            Color(0xFF6A1B9A).copy(alpha = 0.9f),
+            Color(0xFF9C27B0).copy(alpha = 0.7f)
         )
-        else -> listOf(Color(0xFFF37321), Color(0xFFFF9B47))
+        else -> listOf(
+            LinageOrange.copy(alpha = 0.9f),
+            LinageOrangeDark.copy(alpha = 0.7f)
+        )
     }
     
     Card(
         modifier = Modifier
-            .width(280.dp)
-            .height(320.dp), // TAMAÑO SIMILAR A LAS IMÁGENES
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clickable {
+                isPressed = true
+            },
         colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
+            containerColor = Color(0xFF1E1E1E)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        shape = RoundedCornerShape(16.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation.dp),
+        shape = RoundedCornerShape(20.dp)
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(gradientColors)
-                )
+            modifier = Modifier.fillMaxWidth()
         ) {
+            // Fondo con gradiente sutil
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = gradientColors,
+                            startX = 0f,
+                            endX = Float.POSITIVE_INFINITY
+                        ),
+                        RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                    )
+            )
+            
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp)
+                    .fillMaxWidth()
+                    .padding(24.dp)
             ) {
-                // NOMBRE DEL PLAN GRANDE Y BLANCO
-                Text(
-                    text = plan.nombre,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                        fontSize = 24.sp
-                    )
-                )
-                
-                // PRECIO GRANDE
-                Text(
-                    text = plan.precio,
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                        fontSize = 36.sp
-                    ),
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // BENEFICIOS COMO BULLETS
-                plan.getBeneficiosList().take(5).forEach { beneficio ->
-                    Row(
-                        modifier = Modifier.padding(vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                // Header con nombre y precio
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = plan.nombre,
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                fontSize = 22.sp
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = plan.velocidad,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                    }
+                    
+                    // Precio destacado
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White.copy(alpha = 0.9f)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text(
-                            text = "•",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = plan.precio,
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Black,
+                                    color = gradientColors[0],
+                                    fontSize = 18.sp
+                                )
                             )
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = beneficio,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = Color.White,
-                                fontSize = 12.sp
+                            Text(
+                                text = "/mes",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = Color.Black.copy(alpha = 0.7f)
+                                )
                             )
-                        )
+                        }
                     }
                 }
                 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(20.dp))
                 
-                // LOGOS EN LA PARTE INFERIOR
-                when {
-                    plan.type.contains("Win+") -> {
-                        Text(
-                            text = "WIN+ sports",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Black
-                            )
+                // Beneficios principales con animación
+                val beneficios = plan.getBeneficiosList().take(4)
+                beneficios.forEachIndexed { beneficioIndex, beneficio ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(
+                            tween(400, delayMillis = (index * 100) + (beneficioIndex * 50))
+                        ) + slideInHorizontally(
+                            tween(400, delayMillis = (index * 100) + (beneficioIndex * 50))
                         )
-                    }
-                    plan.type.contains("DIRECTV") -> {
-                        Text(
-                            text = "DIRECTV GO",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Black
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Indicador animado
+                            val infiniteTransition = rememberInfiniteTransition(label = "benefit_pulse")
+                            val pulseAlpha by infiniteTransition.animateFloat(
+                                initialValue = 0.5f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(1500),
+                                    repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "pulse_alpha"
                             )
-                        )
-                    }
-                    plan.type.contains("Netflix") -> {
-                        Text(
-                            text = "NETFLIX",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                color = Color(0xFFE50914),
-                                fontWeight = FontWeight.Black
+                            
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .background(
+                                        Color.White.copy(alpha = pulseAlpha),
+                                        CircleShape
+                                    )
                             )
-                        )
-                    }
-                    plan.type.contains("Cámaras") -> {
-                        Text(
-                            text = "📹 SEGURIDAD",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Black
+                            
+                            Spacer(modifier = Modifier.width(12.dp))
+                            
+                            Text(
+                                text = beneficio,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = Color.White.copy(alpha = 0.9f),
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                modifier = Modifier.weight(1f)
                             )
-                        )
+                        }
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 
-                // BOTÓN CONTRATAR
+                // Botón de contratar con animación
                 Button(
-                    onClick = { 
-                        // Generar mensaje de WhatsApp
+                    onClick = {
+                        isPressed = true
+                        
                         val message = "¡Hola! 👋 Estoy interesado en el plan ${plan.nombre} de ${plan.precio} " +
                                 "con velocidad de ${plan.velocidad}. ¿Podrían darme más información? Gracias 😊"
                         
                         val whatsappIntent = Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse("https://wa.me/?text=${Uri.encode(message)}")
+                            Uri.parse("https://wa.me/573024478864?text=${Uri.encode(message)}")
                         )
                         context.startActivity(whatsappIntent)
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White
+                        containerColor = Color.White.copy(alpha = 0.95f)
                     ),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
                 ) {
-                    Text(
-                        text = "Contratar",
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            color = Color.Black,
-                            fontWeight = FontWeight.Bold
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "💬",
+                            fontSize = 18.sp
                         )
-                    )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Contratar Plan",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        )
+                    }
+                }
+                
+                // Etiqueta de categoría
+                if (plan.type.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = gradientColors[0].copy(alpha = 0.3f)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = plan.type,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                color = Color.White,
+                                fontWeight = FontWeight.Medium
+                            ),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
                 }
             }
+        }
+    }
+    
+    // Reset estados
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            delay(150)
+            isPressed = false
         }
     }
 }

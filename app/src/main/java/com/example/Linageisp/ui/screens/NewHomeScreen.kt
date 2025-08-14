@@ -76,7 +76,8 @@ data class BusinessPartner(
 @Composable
 fun NewHomeScreen(
     onNavigateToPlans: () -> Unit,
-    onNavigateToSupport: () -> Unit = {}
+    onNavigateToSupport: () -> Unit = {},
+    onNavigateToAI: () -> Unit = {}
 ) {
     var isLoaded by remember { mutableStateOf(false) }
     
@@ -134,19 +135,8 @@ fun NewHomeScreen(
             }
         }
         
-        // Accesos rápidos - Solo Soporte (sin Test de Velocidad)
-        item {
-            AnimatedVisibility(
-                visible = isLoaded,
-                enter = fadeIn(tween(800, 500)) + slideInVertically(
-                    tween(800, 500), initialOffsetY = { it / 4 }
-                )
-            ) {
-                SupportAccessSection(onSupportClick = onNavigateToSupport)
-            }
-        }
         
-        // Sección de beneficios
+        // Sección ¿Por qué Linage? con AI integrado
         item {
             AnimatedVisibility(
                 visible = isLoaded,
@@ -154,7 +144,7 @@ fun NewHomeScreen(
                     tween(800, 600), initialOffsetY = { it / 3 }
                 )
             ) {
-                BenefitsSection()
+                WhyLinageSection(onNavigateToAI = onNavigateToAI, onNavigateToSupport = onNavigateToSupport)
             }
         }
         
@@ -243,6 +233,7 @@ private fun HeaderSection() {
                 }
             }
         }
+
     }
 }
 
@@ -336,6 +327,7 @@ private fun PromoBannerCarousel() {
                 }
             }
         }
+
     }
 }
 
@@ -594,54 +586,76 @@ private fun QuickActionButton(onClick: () -> Unit) {
 
 
 /**
- * Sección de beneficios principales
+ * Sección ¿Por qué Linage? con AI Assistant integrado
  */
 @Composable
-private fun BenefitsSection() {
-    val benefits = listOf(
-        HomeBenefit(
-            emoji = "⚡",
-            title = "Velocidad",
-            description = "Hasta 900 Mbps",
-            backgroundColor = LinageOrangeSoft
-        ),
-        HomeBenefit(
-            emoji = "🛠️",
-            title = "Soporte 24/7",
-            description = "Asistencia técnica",
-            backgroundColor = Color(0xFFE3F2FD)
-        ),
-        HomeBenefit(
-            emoji = "🎬",
-            title = "Streaming",
-            description = "Sin interrupciones",
-            backgroundColor = Color(0xFFF3E5F5)
-        ),
-        HomeBenefit(
-            emoji = "🔧",
-            title = "Instalación",
-            description = "100% Gratuita",
-            backgroundColor = Color(0xFFE8F5E8)
-        )
-    )
-
+private fun WhyLinageSection(
+    onNavigateToAI: () -> Unit = {},
+    onNavigateToSupport: () -> Unit = {}
+) {
     Column(
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
-        Text(
-            text = "¿Por qué Linage?",
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.Bold,
-                color = LinageOrangeDark
-            ),
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        // Título con estilo futurístico
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(LinageOrange, LinageOrangeDark)
+                        ),
+                        CircleShape
+                    )
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "¿Por qué Linage?",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = LinageOrangeDark
+                )
+            )
+        }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Beneficios básicos en cards horizontales
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(horizontal = 4.dp)
         ) {
-            itemsIndexed(benefits) { index, benefit ->
+            itemsIndexed(
+                listOf(
+                    HomeBenefit(
+                        emoji = "⚡",
+                        title = "Velocidad",
+                        description = "Hasta 900 Mbps",
+                        backgroundColor = LinageOrangeSoft
+                    ),
+                    HomeBenefit(
+                        emoji = "💬",
+                        title = "Asistencia",
+                        description = "Soporte 24/7",
+                        backgroundColor = Color(0xFFE8F5E8)
+                    ),
+                    HomeBenefit(
+                        emoji = "🤖",
+                        title = "Asistente IA",
+                        description = "IA inteligente",
+                        backgroundColor = Color(0xFFF3E5F5)
+                    ),
+                    HomeBenefit(
+                        emoji = "🛡️",
+                        title = "Confiabilidad",
+                        description = "99.9% uptime",
+                        backgroundColor = Color(0xFFE3F2FD)
+                    )
+                )
+            ) { index, benefit ->
                 AnimatedVisibility(
                     visible = true,
                     enter = scaleIn(
@@ -649,7 +663,11 @@ private fun BenefitsSection() {
                         initialScale = 0.8f
                     ) + fadeIn(tween(600, index * 150))
                 ) {
-                    BenefitCard(benefit = benefit)
+                    InteractiveBenefitCard(
+                        benefit = benefit,
+                        onNavigateToAI = onNavigateToAI,
+                        onNavigateToSupport = onNavigateToSupport
+                    )
                 }
             }
         }
@@ -657,7 +675,152 @@ private fun BenefitsSection() {
 }
 
 /**
- * Tarjeta de beneficio
+ * Tarjeta de beneficio interactiva con funcionalidades
+ */
+@Composable
+private fun InteractiveBenefitCard(
+    benefit: HomeBenefit,
+    onNavigateToAI: () -> Unit = {},
+    onNavigateToSupport: () -> Unit = {}
+) {
+    val context = LocalContext.current
+    var isPressed by remember { mutableStateOf(false) }
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "benefit_scale"
+    )
+
+    Card(
+        onClick = {
+            isPressed = true
+            when (benefit.title) {
+                "Asistencia" -> {
+                    // Abrir WhatsApp
+                    val whatsappIntent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://api.whatsapp.com/send/?phone=573024478864&text=Hola%2C+quiero+saber+m%C3%A1s+sobre+el+servicio&type=phone_number&app_absent=0")
+                    )
+                    context.startActivity(whatsappIntent)
+                }
+                "Asistente IA" -> {
+                    // Navegar al asistente IA
+                    onNavigateToAI()
+                }
+                // Para otros beneficios no hacemos nada específico por ahora
+            }
+        },
+        modifier = Modifier
+            .width(140.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = benefit.backgroundColor
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (benefit.title in listOf("Asistencia", "Asistente IA")) 6.dp else 4.dp
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Emoji con efecto especial para opciones interactivas
+            if (benefit.title in listOf("Asistencia", "Asistente IA")) {
+                val infiniteTransition = rememberInfiniteTransition(label = "glow")
+                val glowAlpha by infiniteTransition.animateFloat(
+                    initialValue = 0.7f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(2000),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "glow_alpha"
+                )
+                
+                Box(
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Efecto de resplandor
+                    Text(
+                        text = benefit.emoji,
+                        fontSize = 38.sp,
+                        color = Color.White.copy(alpha = glowAlpha * 0.3f),
+                        modifier = Modifier.offset(x = 2.dp, y = 2.dp)
+                    )
+                    Text(
+                        text = benefit.emoji,
+                        fontSize = 36.sp
+                    )
+                }
+            } else {
+                Text(
+                    text = benefit.emoji,
+                    fontSize = 36.sp
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Text(
+                text = benefit.title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = if (benefit.title in listOf("Asistencia", "Asistente IA")) FontWeight.ExtraBold else FontWeight.Bold
+                ),
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Text(
+                text = benefit.description,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = LinageGray
+                ),
+                textAlign = TextAlign.Center
+            )
+            
+            // Indicador de funcionalidad para opciones interactivas
+            if (benefit.title in listOf("Asistencia", "Asistente IA")) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = LinageOrange.copy(alpha = 0.8f)
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "Toca aquí",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = LinageWhite,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+            }
+        }
+    }
+    
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            delay(150)
+            isPressed = false
+        }
+    }
+}
+
+/**
+ * Tarjeta de beneficio estática (para compatibilidad)
  */
 @Composable
 private fun BenefitCard(benefit: HomeBenefit) {
@@ -1028,131 +1191,159 @@ private fun QuickAccessCard(
 }
 
 
+
 /**
- * Sección de Soporte con enlace a WhatsApp
+ * Card futurística con estilo Frutiger Aero para accesos especiales
  */
 @Composable
-private fun SupportAccessSection(onSupportClick: () -> Unit) {
+private fun FuturisticAccessCard(
+    title: String,
+    subtitle: String,
+    description: String,
+    icon: String,
+    gradientColors: List<Color>,
+    accentColor: Color,
+    onClick: () -> Unit
+) {
     val context = LocalContext.current
+    var isPressed by remember { mutableStateOf(false) }
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "futuristic_card_scale"
+    )
 
-    Column(
-        modifier = Modifier.padding(horizontal = 16.dp)
-    ) {
-        Text(
-            text = "Asistencia",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = LinageOrangeDark
-            ),
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
-        // Botón de WhatsApp con estilo Frutiger Aero
-        Card(
-            onClick = {
+    Card(
+        onClick = {
+            isPressed = true
+            if (title.contains("Soporte")) {
                 val whatsappIntent = Intent(
                     Intent.ACTION_VIEW,
                     Uri.parse("https://api.whatsapp.com/send/?phone=573024478864&text=Hola%2C+quiero+saber+m%C3%A1s+sobre+el+servicio&type=phone_number&app_absent=0")
                 )
                 context.startActivity(whatsappIntent)
+            } else {
+                onClick()
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
             },
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = LinageWhite
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-            shape = RoundedCornerShape(20.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = LinageWhite
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.horizontalGradient(colors = gradientColors)
+                )
+                .padding(20.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color(0xFF25D366).copy(alpha = 0.1f),
-                                Color(0xFF128C7E).copy(alpha = 0.05f),
-                                LinageOrangeSoft.copy(alpha = 0.1f)
-                            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Icono principal con glassmorphism
+                Card(
+                    modifier = Modifier.size(64.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = accentColor.copy(alpha = 0.9f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = icon,
+                            fontSize = 28.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Contenido principal
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = accentColor
                         )
                     )
-                    .padding(20.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = LinageGray,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = LinageGray.copy(alpha = 0.8f)
+                        ),
+                        maxLines = 2
+                    )
+                }
+
+                // Indicador de acción con animación pulsante
+                Card(
+                    modifier = Modifier.size(44.dp),
+                    shape = CircleShape,
+                    colors = CardDefaults.cardColors(
+                        containerColor = LinageOrange.copy(alpha = 0.9f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                 ) {
-                    // Icono de WhatsApp con efecto glassmorphic
-                    Card(
-                        modifier = Modifier.size(60.dp),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFF25D366).copy(alpha = 0.9f)
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "💬",
-                                fontSize = 28.sp
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    // Contenido de texto
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = "Asistente WhatsApp",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF128C7E)
-                            )
+                        val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+                        val alpha by infiniteTransition.animateFloat(
+                            initialValue = 0.7f,
+                            targetValue = 1f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1000),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "alpha_pulse"
                         )
+                        
                         Text(
-                            text = "Chatea con nuestros expertos",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = LinageGray,
-                                fontWeight = FontWeight.Medium
-                            )
+                            text = "→",
+                            fontSize = 20.sp,
+                            color = LinageWhite.copy(alpha = alpha),
+                            fontWeight = FontWeight.Bold
                         )
-                        Text(
-                            text = "+57 302 447 8864",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = LinageGray.copy(alpha = 0.8f)
-                            )
-                        )
-                    }
-
-                    // Icono de acción
-                    Card(
-                        modifier = Modifier.size(40.dp),
-                        shape = CircleShape,
-                        colors = CardDefaults.cardColors(
-                            containerColor = LinageOrange.copy(alpha = 0.9f)
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "→",
-                                fontSize = 18.sp,
-                                color = LinageWhite,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
                     }
                 }
             }
+        }
+    }
+    
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            delay(150)
+            isPressed = false
         }
     }
 }

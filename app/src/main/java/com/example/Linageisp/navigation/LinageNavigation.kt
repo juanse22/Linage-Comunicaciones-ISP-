@@ -25,6 +25,7 @@ sealed class LinageDestinations(val route: String) {
     object TechnicalSupport : LinageDestinations("technical_support")
     object Billing : LinageDestinations("billing")
     object Settings : LinageDestinations("settings")
+    object AIAssistant : LinageDestinations("ai_assistant")
 }
 
 /**
@@ -49,6 +50,9 @@ fun LinageNavHost(
                 },
                 onNavigateToSupport = {
                     navController.navigate(LinageDestinations.TechnicalSupport.route)
+                },
+                onNavigateToAI = {
+                    navController.navigate(LinageDestinations.AIAssistant.route)
                 }
             )
         }
@@ -157,6 +161,29 @@ fun LinageNavHost(
             }
         ) {
             SettingsScreen()
+        }
+        
+        // Pantalla del Asistente de IA
+        composable(
+            route = LinageDestinations.AIAssistant.route,
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(400, easing = EaseInOutCubic)
+                ) + fadeIn(animationSpec = tween(400))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(400, easing = EaseInOutCubic)
+                ) + fadeOut(animationSpec = tween(400))
+            }
+        ) {
+            AIAssistantScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
