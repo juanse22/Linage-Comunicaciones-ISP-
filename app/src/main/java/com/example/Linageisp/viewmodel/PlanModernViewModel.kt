@@ -23,65 +23,60 @@ class PlanModernViewModel : ViewModel() {
         // Simular carga de datos
         _plans.value = listOf(
             PlanModern(
-                id = "plan_200",
-                speed = "200 Mbps",
-                price = "$65.000",
+                id = "modern_200",
+                speed = "200 Mbps", 
+                price = "$80.000",
                 benefits = listOf(
                     "Fibra óptica premium",
                     "Paramount+ gratis 1 mes",
+                    "TV digital 120 canales",
                     "Instalación sin costo",
-                    "Soporte técnico 24/7",
-                    "1 pantalla simultánea"
+                    "Soporte técnico 24/7"
                 ),
                 isPopular = true,
                 color = PlanColor.Orange
             ),
             PlanModern(
-                id = "plan_400",
+                id = "modern_silver_win",
                 speed = "400 Mbps",
-                price = "$70.000",
-                originalPrice = "$85.000",
+                price = "$113.000",
                 benefits = listOf(
-                    "Fibra óptica premium",
-                    "Paramount+ gratis 2 meses",
-                    "Netflix básico incluido",
-                    "Instalación sin costo",
-                    "Soporte técnico 24/7",
-                    "2 pantallas simultáneas"
+                    "Fibra óptica premium", 
+                    "DIRECTV GO Flex (20 canales)",
+                    "2 pantallas simultáneas",
+                    "1.000 series y películas",
+                    "3 meses Paramount+ gratis",
+                    "Canal Win+ Fútbol exclusivo"
                 ),
                 isRecommended = true,
                 color = PlanColor.Blue
             ),
             PlanModern(
-                id = "plan_600",
-                speed = "600 Mbps",
-                price = "$85.000",
+                id = "modern_gold_win",
+                speed = "400 Mbps",
+                price = "$163.000", 
                 benefits = listOf(
                     "Fibra óptica premium",
-                    "Paramount+ gratis 3 meses",
-                    "Netflix estándar incluido",
-                    "Win Sports+ incluido",
-                    "Instalación sin costo",
-                    "Soporte técnico 24/7",
-                    "4 pantallas simultáneas"
-                ),
-                color = PlanColor.Green
-            ),
-            PlanModern(
-                id = "plan_900",
-                speed = "900 Mbps",
-                price = "$100.000",
-                benefits = listOf(
-                    "Fibra óptica premium",
-                    "Paramount+ gratis 6 meses",
-                    "Netflix premium incluido",
-                    "Win Sports+ incluido",
-                    "DIRECTV GO incluido",
-                    "Instalación sin costo",
-                    "Soporte técnico 24/7",
-                    "Dispositivos ilimitados"
+                    "DIRECTV GO FULL (80 canales)",
+                    "4 pantallas simultáneas", 
+                    "10.000 series y películas",
+                    "3 meses Paramount+ gratis",
+                    "Canal Win+ Fútbol exclusivo"
                 ),
                 color = PlanColor.Purple
+            ),
+            PlanModern(
+                id = "modern_netflix_900",
+                speed = "900 Mbps",
+                price = "$115.000",
+                benefits = listOf(
+                    "Fibra óptica premium",
+                    "Netflix HD incluido",
+                    "Máxima velocidad",
+                    "Instalación sin costo", 
+                    "Soporte técnico 24/7"
+                ),
+                color = PlanColor.Green
             )
         )
         

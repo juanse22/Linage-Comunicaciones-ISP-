@@ -260,6 +260,12 @@ private fun PromoBannerCarousel() {
             gradientColors = listOf(LinageOrange, LinageOrangeLight)
         ),
         PromoBanner(
+            title = "Servicio de Cámaras",
+            description = "Seguridad y vigilancia 24/7",
+            imageRes = R.drawable.linagebanner,
+            gradientColors = listOf(Color(0xFFFF6D00), Color(0xFFFF8F00))
+        ),
+        PromoBanner(
             title = "DIRECTV GO",
             description = "Streaming premium incluido",
             imageRes = R.drawable.directv_go,
@@ -725,13 +731,6 @@ private fun BenefitCard(benefit: HomeBenefit) {
 private fun BusinessPartnersSection() {
     val partners = listOf(
         BusinessPartner(
-            name = "Win Sports Max",
-            emoji = "📺",
-            discount = "INCLUIDO",
-            description = "Deportes en vivo gratis",
-            backgroundColor = Color(0xFFE8F5E8)
-        ),
-        BusinessPartner(
             name = "Lyon Sport",
             emoji = "👕",
             discount = "25% OFF",
@@ -739,11 +738,25 @@ private fun BusinessPartnersSection() {
             backgroundColor = Color(0xFFFFF3E0)
         ),
         BusinessPartner(
+            name = "MaCaDi Cosmetics", 
+            emoji = "💄",
+            discount = "30% OFF",
+            description = "Centro de belleza y cosmética",
+            backgroundColor = Color(0xFFE8F5E8)
+        ),
+        BusinessPartner(
             name = "Netflix Premium",
-            emoji = "🎬",
+            emoji = "🎬", 
             discount = "3 MESES",
             description = "Streaming premium gratis",
             backgroundColor = Color(0xFFFFE0E0)
+        ),
+        BusinessPartner(
+            name = "Win Sports Max",
+            emoji = "📺",
+            discount = "INCLUIDO",
+            description = "Deportes en vivo gratis",
+            backgroundColor = Color(0xFFF3E5F5)
         )
     )
 
