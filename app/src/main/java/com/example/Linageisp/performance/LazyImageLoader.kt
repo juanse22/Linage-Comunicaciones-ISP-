@@ -40,56 +40,26 @@ import com.example.Linageisp.performance.core.DeviceCapabilityDetector as CoreDe
  * Integra Coil con optimizaciones personalizadas de memoria y rendimiento
  */
 class LazyImageLoader private constructor(
-    private val context: Context,
-    private val memoryManager: MemoryResourceManager,
-    private val deviceCapabilities: CoreDeviceCapabilityDetector.DeviceCapabilities
+    private val context: Context
 ) {
     
     companion object {
         @Volatile
         private var INSTANCE: LazyImageLoader? = null
         
-        fun getInstance(
-            context: Context,
-            memoryManager: MemoryResourceManager,
-            deviceCapabilities: CoreDeviceCapabilityDetector.DeviceCapabilities
-        ): LazyImageLoader {
+        fun getInstance(context: Context): LazyImageLoader {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: LazyImageLoader(
-                    context.applicationContext,
-                    memoryManager,
-                    deviceCapabilities
-                ).also { INSTANCE = it }
+                INSTANCE ?: LazyImageLoader(context.applicationContext).also { INSTANCE = it }
             }
         }
         
-        // Configuración de caché por tier de dispositivo
-        private fun getCacheConfig(tier: CoreDeviceCapabilityDetector.PerformanceTier) = when (tier) {
-            CoreDeviceCapabilityDetector.PerformanceTier.LOW_END -> CacheConfig(
-                memoryPercent = 0.15, // 15% de RAM disponible
-                diskSizeMB = 50,
-                maxImageWidth = 800,
-                maxImageHeight = 600
-            )
-            CoreDeviceCapabilityDetector.PerformanceTier.MID_END -> CacheConfig(
-                memoryPercent = 0.25, // 25% de RAM disponible  
-                diskSizeMB = 100,
-                maxImageWidth = 1200,
-                maxImageHeight = 900
-            )
-            CoreDeviceCapabilityDetector.PerformanceTier.HIGH_END -> CacheConfig(
-                memoryPercent = 0.35, // 35% de RAM disponible
-                diskSizeMB = 200,
-                maxImageWidth = 1920,
-                maxImageHeight = 1440
-            )
-            CoreDeviceCapabilityDetector.PerformanceTier.PREMIUM -> CacheConfig(
-                memoryPercent = 0.4, // 40% de RAM disponible
-                diskSizeMB = 300,
-                maxImageWidth = 2560,
-                maxImageHeight = 1920
-            )
-        }
+        // Configuración simple de caché
+        private val cacheConfig = CacheConfig(
+            memoryPercent = 0.25,
+            diskSizeMB = 100,
+            maxImageWidth = 1200,
+            maxImageHeight = 900
+        )
     }
     
     data class CacheConfig(
@@ -106,65 +76,50 @@ class LazyImageLoader private constructor(
         val isSuccess: Boolean = false
     )
     
-    private val cacheConfig = getCacheConfig(deviceCapabilities.tier)
+    // Usar configuración simple
     
-    // ImageLoader optimizado según capacidades del dispositivo
+    // ImageLoader simple y fluido
     val imageLoader: ImageLoader by lazy {
         ImageLoader.Builder(context)
             .memoryCache {
                 MemoryCache.Builder(context)
-                    .maxSizePercent(cacheConfig.memoryPercent)
+                    .maxSizePercent(0.25)
                     .build()
             }
             .diskCache {
                 DiskCache.Builder()
                     .directory(File(context.cacheDir, "image_cache"))
-                    .maxSizeBytes(cacheConfig.diskSizeMB * 1024 * 1024)
+                    .maxSizeBytes(100 * 1024 * 1024) // 100MB
                     .build()
             }
-            .components {
-                if (android.os.Build.VERSION.SDK_INT >= 28) {
-                    add(ImageDecoderDecoder.Factory())
-                } else {
-                    add(GifDecoder.Factory())
-                }
-            }
             .respectCacheHeaders(false)
-            .allowHardware(deviceCapabilities.tier != CoreDeviceCapabilityDetector.PerformanceTier.LOW_END)
-            .crossfade(if (deviceCapabilities.recommendedSettings.recommendedAnimationScale > 0.8f) 300 else 0)
+            .allowHardware(true)
+            .crossfade(200) // Animación suave
             .build()
     }
     
-    /**
-     * Transformation personalizada para optimizar imágenes según el dispositivo
-     */
-    inner class AdaptiveResizeTransformation : Transformation {
-        override val cacheKey: String = "adaptive_resize_${cacheConfig.maxImageWidth}_${cacheConfig.maxImageHeight}"
+    // Transformation simple y rápida
+    inner class SimpleResizeTransformation : Transformation {
+        override val cacheKey: String = "simple_resize"
         
         override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-            return memoryManager.optimizeBitmap(input, cacheKey) ?: input
+            return input // Sin transformaciones complejas para mejor rendimiento
         }
     }
     
-    /**
-     * Crea una request optimizada para el dispositivo actual
-     */
+    // Request simple y rápida
     fun createOptimizedRequest(
         data: Any?,
         targetWidth: Int? = null,
         targetHeight: Int? = null
     ): ImageRequest {
-        val finalWidth = targetWidth?.coerceAtMost(cacheConfig.maxImageWidth) ?: cacheConfig.maxImageWidth
-        val finalHeight = targetHeight?.coerceAtMost(cacheConfig.maxImageHeight) ?: cacheConfig.maxImageHeight
-        
         return ImageRequest.Builder(context)
             .data(data)
-            .size(finalWidth, finalHeight)
+            .size(targetWidth ?: 1200, targetHeight ?: 900)
             .scale(Scale.FIT)
-            .transformations(AdaptiveResizeTransformation())
-            .memoryCacheKey("${data}_${finalWidth}_${finalHeight}_${deviceCapabilities.tier}")
-            .diskCacheKey("${data}_adaptive")
-            .allowHardware(deviceCapabilities.tier != CoreDeviceCapabilityDetector.PerformanceTier.LOW_END)
+            .memoryCacheKey("${data}_simple")
+            .diskCacheKey("${data}_cache")
+            .allowHardware(true)
             .build()
     }
     
@@ -188,19 +143,11 @@ class LazyImageLoader private constructor(
         }
     }
     
-    /**
-     * Obtiene estadísticas del caché
-     */
+    // Stats simples sin overhead
     fun getCacheStats(): Map<String, Any> {
-        val memoryCache = imageLoader.memoryCache
-        val diskCache = imageLoader.diskCache
-        
         return mapOf(
-            "memoryCacheSize" to (memoryCache?.size ?: 0),
-            "memoryCacheMaxSize" to (memoryCache?.maxSize ?: 0),
-            "diskCacheSize" to (diskCache?.size ?: 0),
-            "diskCacheMaxSize" to (diskCache?.maxSize ?: 0),
-            "cacheConfig" to cacheConfig
+            "status" to "running",
+            "type" to "simple_cache"
         )
     }
 }
@@ -223,113 +170,32 @@ fun OptimizedAsyncImage(
     targetHeight: Int? = null
 ) {
     val context = LocalContext.current
-    val memoryManager = remember { 
-        val detector = CoreDeviceCapabilityDetector(context)
-        val capabilities = runBlocking { detector.detectCapabilities() }
-        MemoryResourceManager.getInstance(context, capabilities)
-    }
-    val deviceCapabilities = remember { 
-        runBlocking { CoreDeviceCapabilityDetector(context).detectCapabilities() }
-    }
-    val imageLoader = remember { 
-        LazyImageLoader.getInstance(context, memoryManager, deviceCapabilities) 
-    }
+    val imageLoader = remember { LazyImageLoader.getInstance(context) }
     
     val request = remember(data, targetWidth, targetHeight) {
         imageLoader.createOptimizedRequest(data, targetWidth, targetHeight)
     }
     
-    val painter = rememberAsyncImagePainter(
+    AsyncImage(
         model = request,
-        imageLoader = imageLoader.imageLoader
+        contentDescription = contentDescription,
+        modifier = modifier,
+        imageLoader = imageLoader.imageLoader,
+        contentScale = contentScale,
+        onLoading = { onLoading?.invoke(true) },
+        onSuccess = { onSuccess?.invoke() },
+        onError = { onError?.invoke(it.result.throwable) }
     )
-    
-    // Monitorear estado de carga
-    LaunchedEffect(painter.state) {
-        when (val state = painter.state) {
-            is AsyncImagePainter.State.Loading -> {
-                onLoading?.invoke(true)
-            }
-            is AsyncImagePainter.State.Success -> {
-                onLoading?.invoke(false)
-                onSuccess?.invoke()
-            }
-            is AsyncImagePainter.State.Error -> {
-                onLoading?.invoke(false)
-                onError?.invoke(state.result.throwable)
-            }
-            else -> {
-                onLoading?.invoke(false)
-            }
-        }
-    }
-    
-    Box(modifier = modifier) {
-        when (painter.state) {
-            is AsyncImagePainter.State.Loading -> {
-                placeholder?.invoke() ?: DefaultImagePlaceholder()
-            }
-            is AsyncImagePainter.State.Error -> {
-                error?.invoke() ?: DefaultImageError()
-            }
-            else -> {
-                Image(
-                    painter = painter,
-                    contentDescription = contentDescription,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = contentScale
-                )
-            }
-        }
-    }
 }
 
 /**
- * Placeholder por defecto con shimmer effect adaptativo
+ * Placeholder simple y fluido
  */
 @Composable
 private fun DefaultImagePlaceholder() {
-    val context = LocalContext.current
-    val deviceCapabilities = remember {
-        runBlocking { CoreDeviceCapabilityDetector(context).detectCapabilities() }
-    }
-    
-    // Solo mostrar shimmer en dispositivos con capacidad suficiente
-    if (deviceCapabilities.recommendedSettings.recommendedAnimationScale >= 0.8f) {
-        ShimmerPlaceholder()
-    } else {
-        StaticPlaceholder()
-    }
+    StaticPlaceholder() // Siempre usar placeholder simple
 }
 
-/**
- * Placeholder con efecto shimmer
- */
-@Composable
-private fun ShimmerPlaceholder() {
-    var shimmerTranslateAnim by remember { mutableStateOf(0f) }
-    
-    LaunchedEffect(Unit) {
-        while (true) {
-            shimmerTranslateAnim = if (shimmerTranslateAnim == 0f) 1f else 0f
-            delay(1000)
-        }
-    }
-    
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color.Gray.copy(alpha = 0.3f)),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(24.dp),
-            strokeWidth = 2.dp,
-            color = Color.Gray.copy(alpha = 0.6f)
-        )
-    }
-}
 
 /**
  * Placeholder estático para dispositivos con recursos limitados
@@ -390,20 +256,8 @@ fun OptimizedImageGrid(
     columns: Int = 2,
     onImageClick: (Int, Any) -> Unit = { _, _ -> }
 ) {
-    val context = LocalContext.current
-    val deviceCapabilities = remember {
-        runBlocking { CoreDeviceCapabilityDetector(context).detectCapabilities() }
-    }
-    
-    // Limitar número de imágenes visibles según capacidad del dispositivo
-    val maxImages = when (deviceCapabilities.tier) {
-        CoreDeviceCapabilityDetector.PerformanceTier.LOW_END -> 8
-        CoreDeviceCapabilityDetector.PerformanceTier.MID_END -> 16
-        CoreDeviceCapabilityDetector.PerformanceTier.HIGH_END -> 24
-        CoreDeviceCapabilityDetector.PerformanceTier.PREMIUM -> 32
-    }
-    
-    val visibleImages = images.take(maxImages)
+    // Grid simple sin limitaciones complejas
+    val visibleImages = images.take(20) // Límite simple
     
     LazyVerticalGrid(
         columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(columns),

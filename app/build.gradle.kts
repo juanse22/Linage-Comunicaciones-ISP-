@@ -180,8 +180,6 @@ dependencies {
     implementation("io.coil-kt:coil-gif:2.5.0")
     implementation("io.coil-kt:coil-video:2.5.0")
     
-    // Memory leak detection (debug only)
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
     
     // Firebase BoM and dependencies
     implementation(platform("com.google.firebase:firebase-bom:34.1.0"))
