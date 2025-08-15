@@ -20,13 +20,22 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.perf.FirebasePerformance
 import android.util.Log
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
         // Initialize Firebase
         initializeFirebase()
+        
+        // LOG para verificar que Genkit está activo
+        Log.d("LINAGE", "========================================")
+        Log.d("LINAGE", "🚀 LINAGE ISP - IA ACTIVADA")
+        Log.d("LINAGE", "🤖 Modelo: Gemini 1.5 Flash")
+        Log.d("LINAGE", "🔑 API Key: ${if (BuildConfig.GEMINI_KEY.isNotEmpty()) "✅" else "❌"}")
+        Log.d("LINAGE", "========================================")
         
         enableEdgeToEdge()
         setContent {
@@ -65,6 +74,7 @@ class MainActivity : ComponentActivity() {
             FirebaseCrashlytics.getInstance().recordException(e)
         }
     }
+    
 }
 
 @Composable

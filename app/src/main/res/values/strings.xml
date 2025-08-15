@@ -47,6 +47,73 @@
     <string name="settings_terms">Términos y Condiciones</string>
     <string name="settings_privacy">Política de Privacidad</string>
     
+    <!-- AI Assistant - LINA -->
+    <string name="ai_assistant_title">LINA - Asistente Virtual</string>
+    <string name="ai_chat_title">Chat con LINA</string>
+    <string name="ai_status_online">En línea</string>
+    <string name="ai_status_offline">Modo offline</string>
+    <string name="ai_status_connecting">Conectando…</string>
+    <string name="ai_status_error">Error de conexión</string>
+    
+    <!-- Chat Messages -->
+    <string name="chat_input_hint">Escribe tu mensaje…</string>
+    <string name="chat_send">Enviar mensaje</string>
+    <string name="chat_typing">LINA está escribiendo…</string>
+    <string name="chat_retry">Reintentar</string>
+    <string name="chat_error_network">Sin conexión a internet. Activando modo offline…</string>
+    <string name="chat_error_timeout">La respuesta está tomando más tiempo del esperado. ¿Intentamos de nuevo?</string>
+    <string name="chat_error_generic">Algo salió mal. Nuestro equipo humano puede ayudarte mejor.</string>
+    
+    <!-- Quick Actions -->
+    <string name="action_view_plans">Ver planes</string>
+    <string name="action_football_plans">Ver planes Win+ ⚽</string>
+    <string name="action_vip_plans">Ver planes VIP</string>
+    <string name="action_contact_support">Contactar soporte</string>
+    <string name="action_check_coverage">Verificar cobertura</string>
+    <string name="action_speed_test">Prueba de velocidad</string>
+    <string name="action_schedule_call">Agendar llamada</string>
+    <string name="action_billing_info">Consultar factura</string>
+    <string name="action_technical_help">Ayuda técnica</string>
+    <string name="action_view_channels">Ver canales</string>
+    <string name="action_restart_router">Reiniciar router</string>
+    <string name="action_help">Ayuda</string>
+    <string name="action_contact_human">Contactar asesor</string>
+    <string name="action_try_again">Intentar de nuevo</string>
+    
+    <!-- AI Features -->
+    <string name="ai_welcome_title">¡Hola! Soy LINA</string>
+    <string name="ai_welcome_subtitle">Tu asistente virtual de Linage</string>
+    <string name="ai_offline_mode">Modo offline activado</string>
+    <string name="ai_connection_restored">Conexión restaurada</string>
+    <string name="ai_suggestion_chip">Sugerencia</string>
+    
+    <!-- Plan Types -->
+    <string name="plan_type_win_plus">Win+</string>
+    <string name="plan_type_vip">VIP</string>
+    <string name="plan_type_netflix">Netflix</string>
+    <string name="plan_type_cameras">Cámaras</string>
+    <string name="plan_popular">Popular</string>
+    <string name="plan_free_installation">Instalación GRATIS</string>
+    <string name="plan_includes">Incluye:</string>
+    <string name="plan_benefits">Beneficios:</string>
+    
+    <!-- Technical Support -->
+    <string name="tech_support_steps">Pasos a seguir:</string>
+    <string name="tech_support_router_lights">Luces del router:</string>
+    <string name="tech_support_green_light">🟢 Verde = OK</string>
+    <string name="tech_support_red_light">🔴 Roja = Problema</string>
+    <string name="tech_support_yellow_light">🟡 Amarilla = Configurando</string>
+    
+    <!-- Business Hours -->
+    <string name="business_hours_title">Horarios de atención:</string>
+    <string name="business_hours_weekdays">Lunes a Sábado: 8:00 AM - 10:00 PM</string>
+    <string name="business_hours_sunday">Domingo: 11:00 AM - 3:00 PM y 4:00 PM - 6:00 PM</string>
+    
+    <!-- Analytics -->
+    <string name="analytics_session_start">Sesión iniciada</string>
+    <string name="analytics_conversion">Conversión registrada</string>
+    <string name="analytics_escalation">Escalado a humano</string>
+    
     <!-- Common -->
     <string name="ok">OK</string>
     <string name="cancel">Cancelar</string>

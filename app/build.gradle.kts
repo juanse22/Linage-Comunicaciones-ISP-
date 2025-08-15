@@ -5,6 +5,8 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
+    id("dagger.hilt.android.plugin")
+    id("kotlin-kapt")
 }
 
 android {
@@ -26,6 +28,10 @@ android {
         // Optimization: Enable build config fields
         buildConfigField("boolean", "ENABLE_PERFORMANCE_MONITORING", "true")
         buildConfigField("boolean", "ENABLE_LOGGING", "true")
+        
+        // Gemini API Key
+        val apiKey = project.findProperty("GEMINI_API_KEY") as String? ?: "AIzaSyBiqDkrvC6tGkx3t3rUytklWHuwgbrTsBo"
+        buildConfigField("String", "GEMINI_KEY", "\"$apiKey\"")
     }
 
     buildTypes {
@@ -52,12 +58,6 @@ android {
             buildConfigField("boolean", "COMPOSE_COMPILER_REPORTS", "false")
             buildConfigField("boolean", "ENABLE_PERFORMANCE_MONITORING", "false")
             buildConfigField("boolean", "ENABLE_LOGGING", "false")
-            
-            // Optimization: Enable code shrinking and obfuscation
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
     }
     
@@ -82,10 +82,10 @@ android {
             "-Xjvm-default=all",
             
             // Compose compiler performance optimizations
-            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:strongSkipping=true",
+            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:featureFlag=StrongSkipping",
             "-P", "plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=false",
-            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:intrinsicRemember=true",
-            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:nonSkippingGroupOptimization=true"
+            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:featureFlag=IntrinsicRemember",
+            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:featureFlag=OptimizeNonSkippingGroups"
         )
     }
     
@@ -101,7 +101,7 @@ android {
     }
     
     // Optimization: Configure packaging options
-    packagingOptions {
+    packaging {
         resources {
             excludes += setOf(
                 "META-INF/AL2.0",
@@ -190,6 +190,19 @@ dependencies {
     
     // Firebase Genkit AI and Gemini
     implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
+    
+    // Markdown support for chat
+    implementation("io.noties.markwon:core:4.6.2")
+    implementation("io.noties.markwon:ext-strikethrough:4.6.2")
+    implementation("io.noties.markwon:ext-tables:4.6.2")
+    
+    // Additional Compose animations for chat UI
+    implementation("androidx.compose.animation:animation-graphics:1.5.4")
+    
+    // Hilt dependency injection
+    implementation("com.google.dagger:hilt-android:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    kapt("com.google.dagger:hilt-compiler:2.48")
     
     // HTTP client for AI API calls
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

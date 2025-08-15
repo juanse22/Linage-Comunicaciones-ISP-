@@ -163,7 +163,7 @@ fun LinageNavHost(
             SettingsScreen()
         }
         
-        // Pantalla del Asistente de IA
+        // Pantalla del Asistente de IA - LINA
         composable(
             route = LinageDestinations.AIAssistant.route,
             enterTransition = {
@@ -179,7 +179,8 @@ fun LinageNavHost(
                 ) + fadeOut(animationSpec = tween(400))
             }
         ) {
-            AIAssistantScreen(
+            // Importar y usar nuestro nuevo ChatScreen
+            com.example.Linageisp.presentation.chat.ChatScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 }
