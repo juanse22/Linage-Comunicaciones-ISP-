@@ -222,3 +222,26 @@
 
 # Keep class names for crash reports
 -keepnames class com.example.Linageisp.** { *; }
+
+# ------------------------------------------------------------------------------------------------
+# 16KB ALIGNMENT COMPATIBILITY RULES
+# ------------------------------------------------------------------------------------------------
+
+# Remove problematic trace processor and tracebox files
+-dontwarn assets.trace_processor_shell_aarch64
+-dontwarn assets.trace_processor_shell_x86_64
+-dontwarn assets.tracebox_aarch64
+-dontwarn assets.tracebox_x86_64
+
+# Exclude problematic performance monitoring tools
+-dontwarn androidx.benchmark.**
+-dontwarn androidx.tracing.perfetto.**
+
+# Additional 16KB alignment optimizations
+-assumenosideeffects class androidx.benchmark.** {
+    public static *** *(...);
+}
+
+-assumenosideeffects class androidx.tracing.** {
+    public static *** *(...);
+}

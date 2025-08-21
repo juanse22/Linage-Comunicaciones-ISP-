@@ -8,7 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.metrics.performance.JankStats
+// import androidx.metrics.performance.JankStats // REMOVIDO POR ERROR 16KB
 import com.example.Linageisp.performance.core.DeviceCapabilityDetector
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
@@ -125,8 +125,8 @@ class PerformanceMonitor private constructor(
     private val fpsHistory = mutableListOf<Float>()
     private val frameTimeHistory = mutableListOf<Float>()
     
-    // JankStats para Android 12+
-    private var jankStats: JankStats? = null
+    // JankStats para Android 12+ (REMOVIDO POR ERROR 16KB)
+    // private var jankStats: JankStats? = null
     
     // Flows para métricas en tiempo real
     private val _frameMetrics = MutableSharedFlow<FrameMetrics>(
@@ -411,7 +411,7 @@ class PerformanceMonitor private constructor(
      * Limpia recursos y detiene monitoreo
      */
     fun cleanup() {
-        jankStats?.isTrackingEnabled = false
+        // jankStats?.isTrackingEnabled = false // REMOVIDO POR ERROR 16KB
         monitoringScope.cancel()
     }
 }

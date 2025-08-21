@@ -100,12 +100,63 @@ android {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
     
-    // Optimization: Configure packaging options
+    // ===== SOLUCION CRITICA: ERROR 16KB ALIGNMENT =====
+    // Soluciona problemas de compatibilidad con dispositivos modernos
+    // EXCLUYE ARCHIVOS ESPECÍFICOS QUE CAUSAN EL ERROR 16KB
     packaging {
+        // Librerías JNI que causan conflictos de 16KB alignment (sintaxis moderna)
+        jniLibs {
+            pickFirsts += setOf(
+                "**/libc++_shared.so",
+                "**/libchromium_android_linker.so"
+            )
+            excludes += setOf(
+                "lib/arm64-v8a/libbenchmarkNative.so",
+                "lib/arm64-v8a/libtracing_perfetto.so",
+                "**/arm64-v8a/libchromium_android_linker.so",
+                "**/x86_64/libchromium_android_linker.so",
+                "**/x86_64/libbenchmarkNative.so",
+                "**/x86_64/libtracing_perfetto.so",
+                "**/*benchmark*",
+                "**/*perfetto*"
+            )
+        }
+        
+        // ARCHIVOS ESPECÍFICOS DEL ERROR 16KB - EXCLUSIÓN COMPLETA (sintaxis moderna)
         resources {
             excludes += setOf(
+                // EXACTOS ARCHIVOS QUE CAUSAN EL ERROR - TODOS LOS ARCHITECTURAS
+                "assets/trace_processor_shell_aarch64",
+                "assets/trace_processor_shell_x86_64", 
+                "assets/trace_processor_shell_arm",
+                "assets/trace_processor_shell_x86",
+                "assets/tracebox_aarch64",
+                "assets/tracebox_x86_64",
+                "assets/tracebox_arm", 
+                "assets/tracebox_x86",
+                
+                // PATRONES ADICIONALES PARA ASEGURAR EXCLUSIÓN TOTAL
+                "**/trace_processor_shell_*",
+                "**/tracebox_*", 
+                "**/*trace_processor*",
+                "**/*tracebox*",
+                "**/assets/trace_processor*",
+                "**/assets/tracebox*",
+                "trace_processor_shell_*",
+                "tracebox_*",
+                
+                // EXCLUSIONES META-INF
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/notice.txt",
+                "META-INF/ASL2.0",
                 "META-INF/AL2.0",
                 "META-INF/LGPL2.1",
+                "META-INF/*.kotlin_module",
                 "META-INF/gradle/incremental.annotation.processors"
             )
         }
@@ -168,11 +219,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-process:2.7.0")
     
-    // Performance & Memory Optimization
-    implementation("androidx.metrics:metrics-performance:1.0.0-alpha04")
+    // Performance & Memory Optimization (benchmark removido por problema 16KB)
+    // implementation("androidx.metrics:metrics-performance:1.0.0-alpha04")
     implementation("androidx.tracing:tracing:1.2.0")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
-    implementation("androidx.benchmark:benchmark-macro-junit4:1.2.2")
+    // implementation("androidx.benchmark:benchmark-macro-junit4:1.2.2")  // CAUSA ERROR 16KB
     implementation("androidx.profileinstaller:profileinstaller:1.3.1")
     
     // Image loading optimizations with Coil
@@ -224,7 +275,7 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation("androidx.compose.ui:ui-test-manifest")
-    androidTestImplementation("androidx.benchmark:benchmark-macro-junit4:1.2.2")
+    // androidTestImplementation("androidx.benchmark:benchmark-macro-junit4:1.2.2") // CAUSA ERROR 16KB
     
     // Debug dependencies
     debugImplementation(libs.androidx.ui.tooling)
