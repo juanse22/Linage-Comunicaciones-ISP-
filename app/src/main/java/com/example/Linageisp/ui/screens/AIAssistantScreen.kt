@@ -25,6 +25,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.windowInsetsPadding
+import android.util.Log
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +54,12 @@ fun AIAssistantScreen(
     val listState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
     
+    // DEBUG: Log keyboard state
+    val imeInsets = WindowInsets.ime
+    LaunchedEffect(imeInsets) {
+        Log.d("ChatLINA", "Keyboard insets changed: ${imeInsets.getBottom(androidx.compose.ui.unit.Density(1f))}")
+    }
+    
     // Auto-scroll al último mensaje
     LaunchedEffect(uiState.messages.size) {
         if (uiState.messages.isNotEmpty()) {
@@ -57,8 +68,8 @@ fun AIAssistantScreen(
         }
     }
 
-    // Estructura principal con gradiente de fondo
-    Box(
+    // Estructura principal con Scaffold para manejar keyboard correctamente
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .background(
@@ -68,64 +79,76 @@ fun AIAssistantScreen(
                         Color(0xFF0D0D0D)
                     )
                 )
-            )
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Header del chat
+            ),
+        topBar = {
             ChatHeader(onNavigateBack = onNavigateBack)
-            
-            // Área de mensajes
-            Box(
-                modifier = Modifier.weight(1f)
-            ) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    itemsIndexed(uiState.messages) { index, message ->
-                        ChatMessageItem(
-                            message = message,
-                            isFirst = index == 0,
-                            showTyping = uiState.isTyping && index == uiState.messages.lastIndex
-                        )
-                    }
-                    
-                    // Indicador de escribiendo
-                    if (uiState.isTyping) {
-                        item {
-                            TypingIndicator()
-                        }
-                    }
-                    
-                    // Espaciado final
-                    item {
-                        Spacer(modifier = Modifier.height(80.dp))
-                    }
-                }
-                
-                // Botones de acción rápida (solo si el chat está vacío o es mensaje de bienvenida)
-                if (uiState.messages.size <= 1) {
-                    QuickActionsPanel(
-                        modifier = Modifier.align(Alignment.BottomCenter),
-                        onQuickAction = { action ->
-                            aiViewModel.sendQuickAction(action)
-                        }
-                    )
-                }
-            }
-            
-            // Input de mensaje
+        },
+        bottomBar = {
+            // Input de mensaje con padding para keyboard
             ChatInputSection(
                 onSendMessage = { message ->
                     aiViewModel.sendMessage(message)
                     keyboardController?.hide()
                 },
-                isLoading = uiState.isLoading
+                isLoading = uiState.isLoading,
+                modifier = Modifier.imePadding() // CRUCIAL para keyboard
             )
+        },
+        containerColor = Color.Transparent
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF1A1A1A),
+                            Color(0xFF0D0D0D)
+                        )
+                    )
+                )
+        ) {
+            // Área de mensajes con padding correcto
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                reverseLayout = true // Mensajes más recientes abajo
+            ) {
+                // Espaciado inicial para el input
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                
+                // Indicador de escribiendo
+                if (uiState.isTyping) {
+                    item {
+                        TypingIndicator()
+                    }
+                }
+                
+                itemsIndexed(uiState.messages.reversed()) { index, message ->
+                    ChatMessageItem(
+                        message = message,
+                        isFirst = index == uiState.messages.size - 1,
+                        showTyping = uiState.isTyping && index == 0
+                    )
+                }
+            }
+            
+            // Botones de acción rápida (solo si el chat está vacío o es mensaje de bienvenida)
+            if (uiState.messages.size <= 1) {
+                QuickActionsPanel(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 80.dp), // Espacio para el input
+                    onQuickAction = { action ->
+                        aiViewModel.sendQuickAction(action)
+                    }
+                )
+            }
         }
         
         // Mostrar error si existe
@@ -462,12 +485,13 @@ private fun QuickActionButton(
 @Composable
 private fun ChatInputSection(
     onSendMessage: (String) -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    modifier: Modifier = Modifier
 ) {
     var messageText by remember { mutableStateOf("") }
     
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding(),
         colors = CardDefaults.cardColors(

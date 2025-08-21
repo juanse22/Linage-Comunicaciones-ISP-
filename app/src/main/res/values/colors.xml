@@ -7,4 +7,15 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    
+    <!-- Linage ISP Brand Colors -->
+    <color name="linage_orange">#F37321</color>
+    <color name="linage_orange_light">#FF9B47</color>
+    <color name="linage_orange_dark">#D85A00</color>
+    
+    <!-- Notification Colors -->
+    <color name="notification_success">#4CAF50</color>
+    <color name="notification_warning">#FF9800</color>
+    <color name="notification_error">#F44336</color>
+    <color name="notification_info">#2196F3</color>
 </resources>

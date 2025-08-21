@@ -238,6 +238,10 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-perf")
     implementation("com.google.firebase:firebase-config")
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-functions")
+    implementation("com.google.firebase:firebase-inappmessaging-display")
     
     // Firebase Genkit AI and Gemini
     implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
