@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,8 +39,8 @@ fun NotificationSettingsScreen(
     modifier: Modifier = Modifier,
     notificationViewModel: NotificationViewModel = hiltViewModel()
 ) {
-    val preferences by notificationViewModel.notificationPreferences.collectAsState(initial = LinageNotificationManager.NotificationPreferences())
-    val uiState by notificationViewModel.uiState.collectAsState(initial = NotificationViewModel.NotificationUiState())
+    val preferences by notificationViewModel.notificationPreferences.collectAsStateWithLifecycle(initialValue = LinageNotificationManager.NotificationPreferences())
+    val uiState by notificationViewModel.uiState.collectAsStateWithLifecycle(initialValue = NotificationViewModel.NotificationUiState())
     val notificationStats = remember { notificationViewModel.getNotificationStats() }
     
     var showStatsDialog by remember { mutableStateOf(false) }

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -29,8 +31,14 @@ android {
         buildConfigField("boolean", "ENABLE_PERFORMANCE_MONITORING", "true")
         buildConfigField("boolean", "ENABLE_LOGGING", "true")
         
-        // Gemini API Key
-        val apiKey = project.findProperty("GEMINI_API_KEY") as String? ?: "AIzaSyBiqDkrvC6tGkx3t3rUytklWHuwgbrTsBo"
+        // Gemini API Key - MUST be set in local.properties
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+        val apiKey = localProperties.getProperty("GEMINI_API_KEY")
+            ?: throw GradleException("GEMINI_API_KEY must be set in local.properties")
         buildConfigField("String", "GEMINI_KEY", "\"$apiKey\"")
     }
 

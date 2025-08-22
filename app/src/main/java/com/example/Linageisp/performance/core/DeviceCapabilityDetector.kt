@@ -7,6 +7,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.view.WindowManager
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -187,7 +188,9 @@ class DeviceCapabilityDetector(private val context: Context) {
     
     private fun detectThermalCapabilities(): ThermalCapabilities {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val thermalService = context.getSystemService("thermal")
+            val thermalService = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                context.getSystemService("thermal")
+            } else null
             ThermalCapabilities(
                 supportsThermalAPI = true,
                 maxSustainedPerformance = 1.0f, // Placeholder
@@ -314,9 +317,9 @@ class DeviceCapabilityDetector(private val context: Context) {
      */
     @Composable
     fun rememberDeviceCapabilities(): DeviceCapabilities? {
-        val capabilities by capabilities.collectAsState()
+        val capabilities by capabilities.collectAsStateWithLifecycle()
         
-        LaunchedEffect(Unit) {
+        LaunchedEffect(capabilities) {
             if (capabilities == null) {
                 detectCapabilities()
             }

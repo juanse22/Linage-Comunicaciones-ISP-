@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,7 +51,7 @@ fun AIAssistantScreen(
     onNavigateBack: () -> Unit = {},
     aiViewModel: AIAssistantViewModel = viewModel()
 ) {
-    val uiState by aiViewModel.uiState.collectAsState()
+    val uiState by aiViewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
     
@@ -129,7 +130,10 @@ fun AIAssistantScreen(
                     }
                 }
                 
-                itemsIndexed(uiState.messages.reversed()) { index, message ->
+                itemsIndexed(
+                    items = uiState.messages.reversed(),
+                    key = { _, message -> message.timestamp }
+                ) { index, message ->
                     ChatMessageItem(
                         message = message,
                         isFirst = index == uiState.messages.size - 1,
@@ -443,7 +447,10 @@ private fun QuickActionsPanel(
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                itemsIndexed(QuickAction.values()) { index, action ->
+                itemsIndexed(
+                    items = QuickAction.values().toList(),
+                    key = { index, _ -> index }
+                ) { index, action ->
                     QuickActionButton(
                         action = action,
                         onClick = { onQuickAction(action) }

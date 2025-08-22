@@ -37,7 +37,7 @@ data class HomeBenefit(
 fun HomeBenefitsSection() {
     var isLoaded by remember { mutableStateOf(false) }
     
-    LaunchedEffect(Unit) {
+    LaunchedEffect("home_benefits_load") {
         delay(800)
         isLoaded = true
     }

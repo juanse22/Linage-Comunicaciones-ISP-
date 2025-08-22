@@ -70,8 +70,8 @@ fun AccountScreen(
 ) {
     var isLoaded by remember { mutableStateOf(false) }
     
-    // Trigger de animaciones
-    LaunchedEffect(Unit) {
+    // Trigger de animaciones - OPTIMIZED: specific key
+    LaunchedEffect("account_screen_load") {
         delay(400)
         isLoaded = true
     }

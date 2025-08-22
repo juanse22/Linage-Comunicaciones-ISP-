@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -218,11 +219,11 @@ fun LinageApp(
     val planViewModel: PlanViewModel = viewModel()
     val notificationViewModel: NotificationViewModel = hiltViewModel()
     
-    // Estados de notificaciones
-    val uiState by notificationViewModel.uiState.collectAsState(initial = NotificationViewModel.NotificationUiState())
-    val activeBadges by notificationViewModel.activeBadges.collectAsState(initial = emptyMap())
-    val inAppMessages by notificationViewModel.inAppMessages.collectAsState(initial = emptyList())
-    val notificationPreferences by notificationViewModel.notificationPreferences.collectAsState(initial = LinageNotificationManager.NotificationPreferences())
+    // Estados de notificaciones - OPTIMIZED with collectAsStateWithLifecycle
+    val uiState by notificationViewModel.uiState.collectAsStateWithLifecycle(initialValue = NotificationViewModel.NotificationUiState())
+    val activeBadges by notificationViewModel.activeBadges.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val inAppMessages by notificationViewModel.inAppMessages.collectAsStateWithLifecycle(initialValue = emptyList())
+    val notificationPreferences by notificationViewModel.notificationPreferences.collectAsStateWithLifecycle(initialValue = LinageNotificationManager.NotificationPreferences())
     
     // Manejar navegación desde deep links
     val context = androidx.compose.ui.platform.LocalContext.current
