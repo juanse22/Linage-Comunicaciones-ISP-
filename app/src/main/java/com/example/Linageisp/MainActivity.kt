@@ -28,7 +28,6 @@ import com.example.Linageisp.notifications.components.BadgedBottomNavigationBar
 import com.example.Linageisp.notifications.components.NotificationPermissionCard
 import com.example.Linageisp.notifications.components.InAppMessageCard
 import com.example.Linageisp.fcm.LinageNotificationManager
-import com.example.Linageisp.ui.components.LinageBottomNavigationBar
 import com.example.Linageisp.ui.theme.LinageTheme
 import com.example.Linageisp.viewmodel.PlanViewModel
 import com.google.firebase.FirebaseApp

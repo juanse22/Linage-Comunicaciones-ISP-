@@ -1,5 +1,6 @@
 package com.example.Linageisp.ai
 
+import com.example.Linageisp.BuildConfig
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.generationConfig
 import kotlinx.coroutines.Dispatchers
@@ -12,7 +13,7 @@ import kotlinx.coroutines.withContext
 class GenkitAIService {
     
     companion object {
-        private const val API_KEY = "AIzaSyDTIw3sjgK089yq88UkcoYAbc0CLzf5imc"
+        private val API_KEY = BuildConfig.GEMINI_KEY
         private const val MODEL_NAME = "gemini-1.5-flash"
     }
     

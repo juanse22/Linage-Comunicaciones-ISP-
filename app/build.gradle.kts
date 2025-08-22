@@ -81,11 +81,7 @@ android {
             "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
             "-Xjvm-default=all",
             
-            // Compose compiler performance optimizations
-            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:featureFlag=StrongSkipping",
-            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:liveLiterals=false",
-            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:featureFlag=IntrinsicRemember",
-            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:featureFlag=OptimizeNonSkippingGroups"
+            // Compose compiler performance optimizations (removed deprecated flags)
         )
     }
     

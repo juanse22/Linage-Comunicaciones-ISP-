@@ -18,8 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.Linageisp.ui.components.LyonSportWheelOfFortune
-import com.example.Linageisp.ui.components.WheelResult
 import com.example.Linageisp.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -32,7 +30,7 @@ fun LyonSportWheelScreen(
     onNavigateBack: () -> Unit = {}
 ) {
     var isLoaded by remember { mutableStateOf(false) }
-    var wheelResult by remember { mutableStateOf<WheelResult?>(null) }
+    var wheelResult by remember { mutableStateOf<String?>(null) }
     var showInstructions by remember { mutableStateOf(true) }
 
     // Trigger de animación inicial
@@ -118,11 +116,45 @@ fun LyonSportWheelScreen(
                     visible = isLoaded,
                     enter = scaleIn(tween(1000, 400)) + fadeIn(tween(1000, 400))
                 ) {
-                    LyonSportWheelOfFortune(
-                        onResult = { result ->
-                            wheelResult = result
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "🎯",
+                                fontSize = 64.sp
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Lyon Sport Wheel",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1565C0)
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { 
+                                    wheelResult = "¡Ganaste un 25% de descuento!" 
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF1565C0)
+                                )
+                            ) {
+                                Text("¡GIRAR RULETA!", color = Color.White, fontWeight = FontWeight.Bold)
+                            }
                         }
-                    )
+                    }
                 }
             }
 
@@ -251,7 +283,7 @@ private fun InstructionsCard(
  */
 @Composable
 private fun WinnerDialog(
-    result: WheelResult,
+    result: String,
     onDismiss: () -> Unit
 ) {
     var showDialog by remember { mutableStateOf(true) }
@@ -284,7 +316,7 @@ private fun WinnerDialog(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = result.prize.emoji,
+                        text = "🏆",
                         fontSize = 48.sp
                     )
                     Text(
@@ -302,29 +334,27 @@ private fun WinnerDialog(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = result.message,
+                        text = result,
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center
                     )
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    if (result.prize.isSpecial) {
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFFFD700)
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFFD700)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "⭐ PREMIO ESPECIAL ⭐",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1565C0)
                             ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text(
-                                text = "⭐ PREMIO ESPECIAL ⭐",
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1565C0)
-                                ),
-                                modifier = Modifier.padding(8.dp)
-                            )
-                        }
+                            modifier = Modifier.padding(8.dp)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))

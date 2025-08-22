@@ -41,9 +41,9 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="linage_default_channel" />
             
-        <!-- Firebase Cloud Messaging Service -->
+        <!-- OPTIMIZED Firebase Cloud Messaging Service -->
         <service
-            android:name=".fcm.LinageMessagingService"
+            android:name=".fcm.OptimizedMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

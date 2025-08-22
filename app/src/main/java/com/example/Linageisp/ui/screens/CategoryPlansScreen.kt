@@ -24,9 +24,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.example.Linageisp.R
 import com.example.Linageisp.data.Plan
-import com.example.Linageisp.data.PlanCategory
-import com.example.Linageisp.data.CategorizedPlan
-import com.example.Linageisp.data.getAllPlanCategories
+import com.example.Linageisp.data.CategoryInfo
+import com.example.Linageisp.data.getAllCategories
+import com.example.Linageisp.data.getPlansByCategory
 import com.example.Linageisp.ui.theme.LinageOrange
 import com.example.Linageisp.ui.theme.LinageGray
 import com.example.Linageisp.ui.theme.LinageWhite
@@ -51,14 +51,19 @@ fun CategoryPlansScreen(
     
     // Buscar la categoría específica por ID
     val category = remember(categoryId) {
-        getAllPlanCategories().find { it.id == categoryId }
+        getAllCategories().find { it.id == categoryId }
+    }
+    
+    // Obtener planes de la categoría
+    val categoryPlans = remember(categoryId) {
+        getPlansByCategory(categoryId)
     }
     
     // DEBUG: Log para tracking
     LaunchedEffect(categoryId) {
         Log.d("CategoryPlansScreen", "🎯 Mostrando categoría: $categoryId")
         category?.let { cat ->
-            Log.d("CategoryPlansScreen", "📂 ${cat.emoji} ${cat.title} - ${cat.plans.size} planes")
+            Log.d("CategoryPlansScreen", "📂 ${cat.emoji} ${cat.title} - ${categoryPlans.size} planes")
             FirebaseManager.logScreenView("CategoryPlansScreen", categoryId)
         }
     }
@@ -114,30 +119,20 @@ fun CategoryPlansScreen(
                     item {
                         // Información de planes disponibles
                         PlansCountInfo(
-                            planCount = category.plans.size,
+                            planCount = categoryPlans.size,
                             categoryColor = category.color
                         )
                     }
                     
                     // Lista de planes de la categoría
                     items(
-                        items = category.plans,
+                        items = categoryPlans,
                         key = { plan -> plan.id }
-                    ) { categorizedPlan ->
+                    ) { plan ->
                         CategoryPlanCard(
-                            plan = categorizedPlan,
+                            plan = plan,
                             categoryColor = category.color,
                             onPlanClick = {
-                                // Convertir CategorizedPlan a Plan para mantener compatibilidad
-                                val plan = Plan(
-                                    id = categorizedPlan.id,
-                                    nombre = categorizedPlan.nombre,
-                                    velocidad = categorizedPlan.velocidad,
-                                    precio = categorizedPlan.precio,
-                                    beneficios = categorizedPlan.beneficios.joinToString(", "),
-                                    type = categorizedPlan.tipo
-                                )
-                                
                                 // Log plan selection
                                 Log.d("CategoryPlansScreen", "📋 Plan seleccionado: ${plan.nombre} - ${plan.precio}")
                                 onPlanSelected(plan)
@@ -159,7 +154,7 @@ fun CategoryPlansScreen(
  * Header card de la categoría con emoji, título y descripción
  */
 @Composable
-private fun CategoryHeaderCard(category: PlanCategory) {
+private fun CategoryHeaderCard(category: CategoryInfo) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -263,7 +258,7 @@ private fun PlansCountInfo(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryPlanCard(
-    plan: CategorizedPlan,
+    plan: Plan,
     categoryColor: androidx.compose.ui.graphics.Color,
     onPlanClick: () -> Unit
 ) {
@@ -367,7 +362,7 @@ private fun CategoryPlanCard(
                     )
                 )
                 
-                if (plan.tipo.isNotEmpty()) {
+                if (plan.type.isNotEmpty()) {
                     Spacer(modifier = Modifier.width(12.dp))
                     Card(
                         colors = CardDefaults.cardColors(
@@ -376,7 +371,7 @@ private fun CategoryPlanCard(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = plan.tipo,
+                            text = plan.type,
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = LinageGray,
                                 fontWeight = FontWeight.Medium
@@ -400,7 +395,8 @@ private fun CategoryPlanCard(
             }
             
             // Beneficios
-            if (plan.beneficios.isNotEmpty()) {
+            val beneficiosList = plan.getBeneficiosList()
+            if (beneficiosList.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
@@ -412,7 +408,7 @@ private fun CategoryPlanCard(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 
-                plan.beneficios.forEach { beneficio ->
+                beneficiosList.forEach { beneficio ->
                     Row(
                         verticalAlignment = Alignment.Top,
                         modifier = Modifier.padding(vertical = 2.dp)
@@ -464,7 +460,7 @@ private fun CategoryPlanCard(
  * Footer con información adicional de la categoría
  */
 @Composable
-private fun CategoryFooter(category: PlanCategory) {
+private fun CategoryFooter(category: CategoryInfo) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
