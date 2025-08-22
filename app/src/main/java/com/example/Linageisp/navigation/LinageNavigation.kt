@@ -10,6 +10,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.example.Linageisp.ui.screens.*
 import com.example.Linageisp.viewmodel.PlanViewModel
 
@@ -19,6 +21,7 @@ import com.example.Linageisp.viewmodel.PlanViewModel
 sealed class LinageDestinations(val route: String) {
     object Home : LinageDestinations("home")
     object Plans : LinageDestinations("plans")
+    object CategoryPlans : LinageDestinations("plans/category/{categoryId}")
     object Benefits : LinageDestinations("benefits")
     object Account : LinageDestinations("account")
     object SpeedTest : LinageDestinations("speed_test")
@@ -26,6 +29,9 @@ sealed class LinageDestinations(val route: String) {
     object Billing : LinageDestinations("billing")
     object Settings : LinageDestinations("settings")
     object AIAssistant : LinageDestinations("ai_assistant")
+    
+    // Helper function for category navigation
+    fun navigateToCategoryPlans(categoryId: String) = "plans/category/$categoryId"
 }
 
 /**
@@ -57,10 +63,64 @@ fun LinageNavHost(
             )
         }
         
-        // Pantalla de Planes
-        composable(LinageDestinations.Plans.route) {
-            NewPlansScreen(
-                planViewModel = planViewModel
+        // Pantalla de Planes (Categorías)
+        composable(
+            route = LinageDestinations.Plans.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            PlansScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToCategory = { categoryId ->
+                    navController.navigate("plans/category/$categoryId")
+                }
+            )
+        }
+        
+        // Pantalla de Planes de Categoría Específica
+        composable(
+            route = LinageDestinations.CategoryPlans.route,
+            arguments = listOf(
+                navArgument("categoryId") { 
+                    type = NavType.StringType 
+                }
+            ),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = EaseInOutCubic)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
+            CategoryPlansScreen(
+                categoryId = categoryId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onPlanSelected = { plan ->
+                    // TODO: Navigate to plan detail or handle plan selection
+                    // For now, just log the selection
+                    android.util.Log.d("Navigation", "Plan selected: ${plan.nombre}")
+                }
             )
         }
         

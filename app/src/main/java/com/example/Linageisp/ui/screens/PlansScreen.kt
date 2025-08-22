@@ -4,12 +4,18 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -47,48 +53,23 @@ import android.util.Log
 @Composable
 fun PlansScreen(
     onNavigateBack: () -> Unit,
-    onPlanSelected: (Plan) -> Unit,
-    viewModel: PlanViewModel = viewModel()
+    onNavigateToCategory: (String) -> Unit
 ) {
-    // State for category expansion
-    var expandedCategories by remember { mutableStateOf(setOf<String>()) }
     val context = LocalContext.current
     val performanceIntegration = remember { PerformanceIntegration.getInstance(context) }
-    val uiState by viewModel.uiState.collectAsState()
     
     // Firebase Analytics - track screen view
     LaunchedEffect(Unit) {
         FirebaseManager.logScreenView("PlansScreen", "PlansScreen")
-        Log.d("PlansScreen", "🚀 PlansScreen iniciado - mostrando categorías")
+        Log.d("PlansScreen", "🚀 PlansScreen - CATEGORÍAS MODE")
     }
     
     // DEBUG: Verificar que las categorías se cargan
     LaunchedEffect(Unit) {
         val categories = getAllPlanCategories()
-        Log.d("PlansScreen", "📊 Categorías cargadas: ${categories.size}")
+        Log.d("PlansScreen", "📊 Categorías para navegación: ${categories.size}")
         categories.forEach { category ->
             Log.d("PlansScreen", "📂 ${category.emoji} ${category.title} - ${category.plans.size} planes")
-        }
-    }
-    
-    // Track plan scraping performance
-    LaunchedEffect(uiState.isLoading) {
-        if (uiState.isLoading) {
-            val startTime = System.currentTimeMillis()
-            val trace = performanceIntegration.tracePlanScraping()
-            
-            // Wait for loading to complete
-            while (uiState.isLoading) {
-                kotlinx.coroutines.delay(100)
-            }
-            
-            val scrapingTime = System.currentTimeMillis() - startTime
-            performanceIntegration.completePlanScraping(
-                trace, 
-                uiState.plans.size, 
-                scrapingTime, 
-                uiState.errorMessage == null
-            )
         }
     }
     
@@ -115,12 +96,7 @@ fun PlansScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.retryLoading() }) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Actualizar planes"
-                        )
-                    }
+                    // Sin acciones adicionales en modo categorías
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = LinageOrange,
@@ -130,85 +106,56 @@ fun PlansScreen(
                 )
             )
             
-            // Contenido principal con estados
-            Box(
+            // CATEGORÍAS NAVEGABLES - Solo mostrar las 6 categorías principales
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // CRÍTICO: Siempre mostrar categorías independientemente del ViewModel
-                CategorizedPlansList(
-                    expandedCategories = expandedCategories,
-                    onCategoryToggle = { categoryId ->
-                        Log.d("PlansScreen", "🔄 Toggle categoría: $categoryId")
-                        expandedCategories = if (expandedCategories.contains(categoryId)) {
-                            expandedCategories - categoryId
-                        } else {
-                            expandedCategories + categoryId
-                        }
-                    },
-                    onPlanSelected = onPlanSelected
-                )
-                
-                // Overlay de estado de carga si está cargando algo adicional
-                if (uiState.isLoading) {
+                item {
+                    // Header descriptivo
                     Card(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = LinageOrange.copy(alpha = 0.9f)
-                        )
+                            containerColor = LinageOrange.copy(alpha = 0.1f)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                color = LinageWhite,
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Actualizando...",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = LinageWhite
+                                text = "🚀 Encuentra tu Plan Perfecto",
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = LinageOrange
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Selecciona la categoría que mejor se adapte a tus necesidades",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                ),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                         }
                     }
                 }
                 
-                // Overlay de error si hay error
-                uiState.errorMessage?.let { error ->
-                    Card(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "⚠️ $error",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.weight(1f)
-                            )
-                            TextButton(
-                                onClick = { viewModel.retryLoading() }
-                            ) {
-                                Text(
-                                    text = "Reintentar",
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            }
+                items(
+                    items = getAllPlanCategories(),
+                    key = { category -> category.id }
+                ) { category ->
+                    NavigableCategoryCard(
+                        category = category,
+                        onCategoryClick = {
+                            Log.d("PlansScreen", "🔄 Navegando a categoría: ${category.title}")
+                            onNavigateToCategory(category.id)
                         }
-                    }
+                    )
                 }
             }
         }
@@ -293,6 +240,265 @@ private fun BoxScope.EmptyState(
 }
 
 /**
+ * TEST ULTRA SIMPLIFICADO - Verificar que las categorías aparecen
+ */
+@Composable
+private fun SimpleCategoriesTest(onPlanSelected: (Plan) -> Unit) {
+    val categories = getAllPlanCategories()
+    
+    Log.d("SimpleCategoriesTest", "🚨🚨🚨 INICIANDO TEST ULTRA SIMPLIFICADO")
+    Log.d("SimpleCategoriesTest", "🚨 Categorías disponibles: ${categories.size}")
+    
+    if (categories.isEmpty()) {
+        Log.e("SimpleCategoriesTest", "❌ CRITICAL ERROR: getAllPlanCategories() retornó LISTA VACÍA")
+        
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "🚨 CRITICAL ERROR",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "getAllPlanCategories() retornó lista vacía",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Verificar PlanCategory.kt",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        return
+    }
+    
+    // TEST: Mostrar lista super simple sin LazyColumn
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "🚨 TEST: ${categories.size} CATEGORÍAS ENCONTRADAS",
+            style = MaterialTheme.typography.headlineSmall,
+            color = LinageOrange,
+            modifier = Modifier.padding(16.dp)
+        )
+        
+        categories.forEachIndexed { index, category ->
+            Log.d("SimpleCategoriesTest", "🚨 Renderizando categoría [$index]: ${category.title}")
+            
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = category.color.copy(alpha = 0.1f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "${category.emoji} ${category.title}",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = category.color
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = category.description,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "📋 ${category.plans.size} planes disponibles",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = category.color,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+/**
+ * 🎯 Card navegable para cada categoría de planes
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NavigableCategoryCard(
+    category: PlanCategory,
+    onCategoryClick: () -> Unit
+) {
+    // Calcular rango de precios
+    val prices = category.plans.map { it.precioNumerico }.sorted()
+    val minPrice = prices.minOrNull() ?: 0
+    val maxPrice = prices.maxOrNull() ?: 0
+    
+    Card(
+        onClick = {
+            // Log category selection
+            Log.d("PlansScreen", "🎯 Categoría seleccionada: ${category.title} (${category.plans.size} planes)")
+            onCategoryClick()
+        },
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = category.color.copy(alpha = 0.08f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, category.color.copy(alpha = 0.2f))
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp)
+        ) {
+            // Header con emoji y título
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Emoji grande con background circular
+                    Card(
+                        modifier = Modifier.size(60.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = category.color.copy(alpha = 0.15f)
+                        ),
+                        shape = CircleShape
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = category.emoji,
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontSize = 28.sp
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.width(16.dp))
+                    
+                    Column {
+                        Text(
+                            text = category.title,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = category.color
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "${category.plans.size} planes disponibles",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        )
+                    }
+                }
+                
+                // Arrow indicator
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowRight,
+                    contentDescription = "Ver planes",
+                    tint = category.color,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Descripción atractiva
+            Text(
+                text = category.description,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    lineHeight = 24.sp
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Rango de precios y features
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Rango de precios
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = category.color.copy(alpha = 0.12f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Desde",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        )
+                        Text(
+                            text = "$${minPrice / 1000}k",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = category.color
+                            )
+                        )
+                    }
+                }
+                
+                // Features destacadas (primeros 2 beneficios del primer plan)
+                Column {
+                    category.plans.firstOrNull()?.beneficios?.take(2)?.forEach { benefit ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = category.color,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = benefit,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                ),
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * Lista de planes categorizados
  */
 @Composable
@@ -303,13 +509,46 @@ private fun CategorizedPlansList(
 ) {
     val categories = getAllPlanCategories()
     
+    // DEBUG CRÍTICO: Verificar datos
+    Log.d("PlansDebug", "🚨 CategorizedPlansList INICIANDO")
+    Log.d("PlansDebug", "🚨 Categorías obtenidas: ${categories.size}")
+    
     // DEBUG: Log que este componente se está ejecutando
     LaunchedEffect(categories) {
-        Log.d("PlansScreen", "📱 CategorizedPlansList renderizado - ${categories.size} categorías")
-        categories.forEachIndexed { index, category ->
-            Log.d("PlansScreen", "📋 [$index] ${category.emoji} ${category.title}")
+        Log.d("PlansDebug", "📱 CategorizedPlansList renderizado - ${categories.size} categorías")
+        if (categories.isEmpty()) {
+            Log.e("PlansDebug", "❌ ERROR: No hay categorías - getAllPlanCategories() retornó lista vacía")
+        } else {
+            categories.forEachIndexed { index, category ->
+                Log.d("PlansDebug", "📋 [$index] ${category.emoji} ${category.title} - ${category.plans.size} planes")
+            }
         }
     }
+    
+    // TEST SIMPLE: Mostrar texto si no hay categorías
+    if (categories.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "❌ ERROR: No se pudieron cargar las categorías",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "getAllPlanCategories() retornó lista vacía",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        return
+    }
+    
+    Log.d("PlansDebug", "🚨 Creando LazyColumn con ${categories.size} items")
     
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -320,6 +559,7 @@ private fun CategorizedPlansList(
             key = { category -> category.id },
             contentType = { "plan_category" }
         ) { category ->
+            Log.d("PlansDebug", "🚨 Renderizando CategorySection para: ${category.title}")
             CategorySection(
                 category = category,
                 isExpanded = expandedCategories.contains(category.id),
