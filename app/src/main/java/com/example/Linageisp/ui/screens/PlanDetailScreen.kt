@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.Linageisp.R
 import com.example.Linageisp.data.Plan
+import com.example.Linageisp.utils.WhatsAppUtils
 import com.example.Linageisp.ui.theme.LinageOrange
 import com.example.Linageisp.ui.theme.LinageOrangeDark
 import com.example.Linageisp.ui.theme.LinageGray
@@ -288,13 +289,8 @@ fun PlanDetailScreen(
             // Botón de solicitud por WhatsApp
             Button(
                 onClick = {
-                    // Usar la función auxiliar del modelo Plan para generar el mensaje
-                    val message = plan.getWhatsAppMessage()
-                    val whatsappIntent = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse("https://wa.me/?text=${Uri.encode(message)}")
-                    )
-                    context.startActivity(whatsappIntent)
+                    // Usar WhatsAppUtils para contratar el plan
+                    WhatsAppUtils.contractPlan(context, plan)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

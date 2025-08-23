@@ -184,6 +184,7 @@ android {
         unitTests.isReturnDefaultValues = true
         animationsDisabled = true
     }
+    ndkVersion = "27.0.12077973"
 }
 
 dependencies {
