@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -39,6 +40,7 @@ import kotlin.random.Random
 /**
  * Pantalla principal del chat con LINA
  * UI completa con burbujas de mensajes, typing indicator, quick actions y más
+ * VERSIÓN CORREGIDA: Manejo adecuado del teclado y performance optimizada
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,65 +53,34 @@ fun ChatScreen(
     val isTyping by viewModel.isTyping.collectAsState()
     val quickActions by viewModel.quickActions.collectAsState()
     val listState = rememberLazyListState()
-    
+    val keyboardController = LocalSoftwareKeyboardController.current
     // Auto-scroll al último mensaje
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
-            delay(100) // Pequeño delay para animaciones
+            delay(100) // Delay estándar simplificado
             listState.animateScrollToItem(messages.size - 1)
         }
     }
     
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding(), // CRÍTICO: Ajuste automático para teclado
         topBar = {
             ChatTopBar(
                 onNavigateBack = onNavigateBack,
                 connectionState = ConnectionState.CONNECTED
             )
         },
-        bottomBar = {
-            ChatBottomBar(
-                currentMessage = viewModel.currentMessage,
-                onMessageChange = viewModel::updateCurrentMessage,
-                onSendMessage = viewModel::sendMessage,
-                isLoading = isTyping,
-                suggestions = emptyList(),
-                onSuggestionClick = viewModel::sendMessage
-            )
-        },
-        floatingActionButton = {
-            if (BuildConfig.DEBUG) {
-                Column {
-                    // Botón 1: Test IA
-                    FloatingActionButton(
-                        onClick = { viewModel.sendMessage("¿Eres una IA real?") },
-                        modifier = Modifier.padding(bottom = 70.dp),
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    ) {
-                        Icon(Icons.Default.Psychology, "Test IA")
-                    }
-                    
-                    // Botón 2: Test Matemáticas
-                    FloatingActionButton(
-                        onClick = { 
-                            val num1 = Random.nextInt(1000, 9999)
-                            val num2 = Random.nextInt(100, 999)
-                            viewModel.sendMessage("¿Cuánto es $num1 × $num2?")
-                        },
-                        containerColor = MaterialTheme.colorScheme.tertiary
-                    ) {
-                        Icon(Icons.Default.Calculate, "Test Math")
-                    }
-                }
-            }
-        }
+        contentWindowInsets = WindowInsets(0), // Evitar doble padding
+        // Eliminamos floatingActionButton del Scaffold para mejor layout
     ) { paddingValues ->
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Lista de mensajes
+            // Lista de mensajes con manejo optimizado de scroll
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -141,7 +112,7 @@ fun ChatScreen(
                 }
             }
             
-            // Quick Actions
+            // Quick Actions - siempre visibles pero optimizadas
             if (quickActions.isNotEmpty()) {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
@@ -153,6 +124,52 @@ fun ChatScreen(
                             action = action,
                             onClick = { viewModel.handleQuickAction(action) }
                         )
+                    }
+                }
+            }
+            
+            // NUEVA SECCIÓN: Input field SIEMPRE visible
+            ChatInputSection(
+                currentMessage = viewModel.currentMessage,
+                onMessageChange = viewModel::updateCurrentMessage,
+                onSendMessage = { message ->
+                    viewModel.sendMessage(message)
+                    keyboardController?.hide()
+                },
+                isLoading = isTyping,
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+        }
+        
+        // DEBUG FABs (solo en debug)
+        if (BuildConfig.DEBUG) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.BottomEnd
+            ) {
+                Column {
+                    // Botón 1: Test IA
+                    FloatingActionButton(
+                        onClick = { viewModel.sendMessage("¿Eres una IA real?") },
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    ) {
+                        Icon(Icons.Default.Psychology, "Test IA")
+                    }
+                    
+                    // Botón 2: Test Matemáticas
+                    FloatingActionButton(
+                        onClick = { 
+                            val num1 = kotlin.random.Random.nextInt(1000, 9999)
+                            val num2 = kotlin.random.Random.nextInt(100, 999)
+                            viewModel.sendMessage("¿Cuánto es $num1 × $num2?")
+                        },
+                        containerColor = MaterialTheme.colorScheme.tertiary
+                    ) {
+                        Icon(Icons.Default.Calculate, "Test Math")
                     }
                 }
             }
@@ -519,105 +536,87 @@ private fun TypingDot(delay: Int) {
 }
 
 /**
- * Barra inferior con input y sugerencias
+ * NUEVA SECCIÓN DE INPUT CORREGIDA - Siempre visible, nunca tapada por teclado
  */
 @Composable
-private fun ChatBottomBar(
+private fun ChatInputSection(
     currentMessage: String,
     onMessageChange: (String) -> Unit,
     onSendMessage: (String) -> Unit,
     isLoading: Boolean,
-    suggestions: List<String>,
-    onSuggestionClick: (String) -> Unit
+    modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
     
-    Column {
-        // Sugerencias rápidas
-        if (suggestions.isNotEmpty()) {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                items(suggestions) { suggestion ->
-                    SuggestionChip(
-                        text = suggestion,
-                        onClick = { onSuggestionClick(suggestion) }
-                    )
-                }
-            }
-        }
-        
-        // Input de mensaje
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-            shape = RoundedCornerShape(0.dp)
+    Surface(
+        modifier = modifier,
+        tonalElevation = 8.dp,
+        shadowElevation = 4.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .navigationBarsPadding(), // CRÍTICO: Padding adicional para navigation bar
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedTextField(
-                    value = currentMessage,
-                    onValueChange = onMessageChange,
-                    modifier = Modifier.weight(1f),
-                    placeholder = {
-                        Text(
-                            text = "Escribe tu mensaje...",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                    },
-                    shape = RoundedCornerShape(24.dp),
-                    maxLines = 4,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Send
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onSend = {
-                            if (currentMessage.isNotBlank() && !isLoading) {
-                                onSendMessage(currentMessage.trim())
-                                focusManager.clearFocus()
-                            }
-                        }
-                    ),
-                    enabled = !isLoading
-                )
-                
-                // Botón de envío
-                FloatingActionButton(
-                    onClick = {
+            OutlinedTextField(
+                value = currentMessage,
+                onValueChange = onMessageChange,
+                modifier = Modifier.weight(1f),
+                placeholder = {
+                    Text(
+                        text = "Escribe tu mensaje...",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                },
+                shape = RoundedCornerShape(24.dp),
+                maxLines = 4,
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Send
+                ),
+                keyboardActions = KeyboardActions(
+                    onSend = {
                         if (currentMessage.isNotBlank() && !isLoading) {
                             onSendMessage(currentMessage.trim())
                             focusManager.clearFocus()
                         }
-                    },
-                    modifier = Modifier.size(48.dp),
-                    containerColor = if (currentMessage.isNotBlank() && !isLoading) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
                     }
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Send,
-                            contentDescription = "Enviar mensaje",
-                            tint = if (currentMessage.isNotBlank()) {
-                                MaterialTheme.colorScheme.onPrimary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
-                        )
+                ),
+                enabled = !isLoading
+            )
+            
+            // Botón de envío siempre visible
+            FloatingActionButton(
+                onClick = {
+                    if (currentMessage.isNotBlank() && !isLoading) {
+                        onSendMessage(currentMessage.trim())
+                        focusManager.clearFocus()
                     }
+                },
+                modifier = Modifier.size(48.dp),
+                containerColor = if (currentMessage.isNotBlank() && !isLoading) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                }
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Send,
+                        contentDescription = "Enviar mensaje",
+                        tint = if (currentMessage.isNotBlank()) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
                 }
             }
         }

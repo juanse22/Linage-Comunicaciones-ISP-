@@ -12,11 +12,15 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * Detector avanzado de capacidades del dispositivo con métricas dinámicas
  */
-class DeviceCapabilityDetector(private val context: Context) {
+@Singleton
+class DeviceCapabilityDetector @Inject constructor(@ApplicationContext private val context: Context) {
     
     private val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     private val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager

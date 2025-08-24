@@ -20,7 +20,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val aiAssistant: LinageAIAssistant,
-    private val genkitAI: GenkitAI
+    private val genkitAI: GenkitAI,
+    private val crossPlatformOptimizer: com.example.Linageisp.performance.CrossPlatformOptimizer,
+    private val performanceLogger: com.example.Linageisp.performance.PerformanceLogger
 ) : ViewModel() {
     
     // Estado del chat
@@ -52,8 +54,18 @@ class ChatViewModel @Inject constructor(
         if (text.isBlank()) return
         
         viewModelScope.launch {
+            val messageStartTime = System.currentTimeMillis()
+            
+            // Log performance del inicio de mensaje
+            performanceLogger.logChatPerformanceIssue("message_sent", mapOf(
+                "messageLength" to text.length,
+                "timestamp" to messageStartTime
+            ))
+            
             // Agregar mensaje del usuario
+            val addMessageStart = System.currentTimeMillis()
             addUserMessage(text)
+            performanceLogger.measureRenderTime("ChatViewModel", "addUserMessage", addMessageStart, System.currentTimeMillis())
             
             // SIEMPRE mostrar typing
             _isTyping.value = true
@@ -62,8 +74,20 @@ class ChatViewModel @Inject constructor(
                 // NO VERIFICAR CONEXIÓN - SIEMPRE USAR IA
                 Log.d("LINA", "🤖 Procesando con IA: $text")
                 
+                val aiStartTime = System.currentTimeMillis()
+                
                 // Usar el assistant completo
                 val response = aiAssistant.processQuery(text, getCurrentContext())
+                
+                val aiEndTime = System.currentTimeMillis()
+                val aiDuration = aiEndTime - aiStartTime
+                
+                // Log tiempo de respuesta de IA
+                performanceLogger.logChatPerformanceIssue("ai_response_time", mapOf(
+                    "duration" to aiDuration,
+                    "messageLength" to text.length,
+                    "responseLength" to response.content.length
+                ))
                 
                 // Mostrar respuesta con streaming
                 streamResponse(response.content)
@@ -71,10 +95,25 @@ class ChatViewModel @Inject constructor(
                 // Agregar acciones rápidas
                 _quickActions.value = response.quickActions
                 
-                Log.d("LINA", "✅ IA respondió exitosamente")
+                val totalDuration = System.currentTimeMillis() - messageStartTime
+                Log.d("LINA", "✅ IA respondió exitosamente en ${totalDuration}ms")
+                
+                // Log éxito total
+                performanceLogger.logChatPerformanceIssue("message_complete", mapOf(
+                    "totalDuration" to totalDuration,
+                    "aiDuration" to aiDuration,
+                    "streamingWords" to response.content.split(" ").size
+                ))
                 
             } catch (e: Exception) {
                 Log.e("LINA", "Error IA: ${e.message}", e)
+                
+                // Log error crítico
+                performanceLogger.logChatPerformanceIssue("ai_error", mapOf(
+                    "error" to e.message.orEmpty(),
+                    "errorType" to e.javaClass.simpleName,
+                    "duration" to (System.currentTimeMillis() - messageStartTime)
+                ))
                 
                 // Mostrar error pero seguir intentando
                 addAIMessage("""
@@ -108,13 +147,28 @@ class ChatViewModel @Inject constructor(
     }
     
     private suspend fun streamResponse(text: String) {
+        // Obtener optimizaciones específicas del dispositivo
+        val chatOptimizations = crossPlatformOptimizer.getChatOptimizations()
+        
         val words = text.split(" ")
         var accumulated = ""
+        
+        // Delay adaptativo según capacidad del dispositivo
+        val streamDelay = when {
+            chatOptimizations?.enableTypingAnimations == false -> 0L // Sin delay en dispositivos lentos
+            chatOptimizations?.enableScrollAnimations == false -> 10L // Delay mínimo
+            else -> 30L // Delay normal para dispositivos capaces
+        }
+        
+        Log.d("LINA", "Streaming con delay: ${streamDelay}ms para ${words.size} palabras")
         
         words.forEach { word ->
             accumulated += "$word "
             updateLastAIMessage(accumulated.trim())
-            delay(30) // Efecto de escritura
+            
+            if (streamDelay > 0L) {
+                delay(streamDelay)
+            }
         }
     }
     

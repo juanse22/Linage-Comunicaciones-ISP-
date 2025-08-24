@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -44,6 +45,9 @@ fun PlansScreen(
     
     // Estado para controlar qué categoría está expandida
     var expandedCategoryId by remember { mutableStateOf<String?>(null) }
+    
+    // Estado de scroll estable - CLAVE para evitar auto-scroll
+    val listState = rememberLazyListState()
     
     // Firebase Analytics
     LaunchedEffect(Unit) {
@@ -82,10 +86,12 @@ fun PlansScreen(
             
             // Lista de categorías expandibles
             LazyColumn(
+                state = listState, // PRESERVAR POSICIÓN DE SCROLL
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 item {
                     // Header principal
@@ -101,7 +107,12 @@ fun PlansScreen(
                         category = category,
                         isExpanded = expandedCategoryId == category.id,
                         onToggleExpanded = { 
-                            expandedCategoryId = if (expandedCategoryId == category.id) null else category.id
+                            expandedCategoryId = if (expandedCategoryId == category.id) {
+                                null // Colapsar si ya está expandida
+                            } else {
+                                category.id // Expandir esta categoría (automáticamente colapsa otras)
+                            }
+                            Log.d("PlansScreen", "📊 Estado expansion: ${category.title} -> ${expandedCategoryId == category.id}")
                         }
                     )
                 }
@@ -230,21 +241,14 @@ fun getCategoriesData(): List<CategoryData> {
 
 /**
  * Header principal con glassmorphism
+ * ELIMINADO: LaunchedEffect que causaba recomposiciones y auto-scroll
  */
 @Composable
 private fun PlansHeader() {
-    var isVisible by remember { mutableStateOf(false) }
+    // REMOVIDO: Estado de animación que causaba auto-scroll
+    // El header ahora es estático para evitar recomposiciones
     
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(200)
-        isVisible = true
-    }
-    
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = slideInVertically(initialOffsetY = { -it }) + fadeIn()
-    ) {
-        Box(
+    Box( // Cambiado de AnimatedVisibility a Box estático
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
@@ -300,7 +304,6 @@ private fun PlansHeader() {
             }
         }
     }
-}
 
 /**
  * Card de categoría expandible - NÚCLEO DE LA FUNCIONALIDAD
@@ -316,8 +319,30 @@ private fun ExpandableCategoryCard(
     AnimatedContent(
         targetState = isExpanded,
         transitionSpec = {
-            slideInVertically { height -> height } + fadeIn() togetherWith
-                    slideOutVertically { height -> -height } + fadeOut()
+            if (targetState) {
+                slideInVertically(
+                    initialOffsetY = { -it / 4 },
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ) + fadeIn(
+                    animationSpec = tween(300)
+                ) togetherWith slideOutVertically(
+                    targetOffsetY = { -it / 4 },
+                    animationSpec = tween(200)
+                ) + fadeOut(animationSpec = tween(200))
+            } else {
+                slideInVertically(
+                    initialOffsetY = { it / 4 },
+                    animationSpec = tween(200)
+                ) + fadeIn(
+                    animationSpec = tween(200)
+                ) togetherWith slideOutVertically(
+                    targetOffsetY = { it / 4 },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
         },
         label = "category_expansion"
     ) { expanded ->
@@ -352,6 +377,12 @@ private fun ExpandableCategoryCard(
                     Log.d("PlansScreen", if (expanded) "🔼 Colapsando ${category.title}" else "🔽 Expandiendo ${category.title}")
                     onToggleExpanded()
                 }
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
         ) {
             Column(
                 modifier = Modifier.padding(20.dp)
@@ -414,8 +445,19 @@ private fun ExpandableCategoryCard(
                 // Planes (solo visible cuando expandido)
                 AnimatedVisibility(
                     visible = expanded,
-                    enter = slideInVertically() + fadeIn(),
-                    exit = slideOutVertically() + fadeOut()
+                    enter = expandVertically(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ) + fadeIn(
+                        animationSpec = tween(400, delayMillis = 100)
+                    ),
+                    exit = shrinkVertically(
+                        animationSpec = tween(300)
+                    ) + fadeOut(
+                        animationSpec = tween(200)
+                    )
                 ) {
                     Column(
                         modifier = Modifier.padding(top = 16.dp)
@@ -426,7 +468,7 @@ private fun ExpandableCategoryCard(
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                         
-                        category.plans.forEach { plan ->
+                        category.plans.forEachIndexed { index, plan ->
                             PlanItemCard(
                                 plan = plan,
                                 categoryColor = category.color,
@@ -436,7 +478,9 @@ private fun ExpandableCategoryCard(
                                 }
                             )
                             
-                            Spacer(modifier = Modifier.height(8.dp))
+                            if (index < category.plans.size - 1) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                            }
                         }
                     }
                 }
@@ -483,7 +527,7 @@ private fun PlanItemCard(
             .clip(RoundedCornerShape(16.dp))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(12.dp)
         ) {
             // Header del plan
             Row(
@@ -493,31 +537,33 @@ private fun PlanItemCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
                             text = plan.name,
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = categoryColor
-                            )
+                            ),
+                            modifier = Modifier.weight(1f, fill = false)
                         )
                         
                         if (plan.isHighlighted) {
-                            Spacer(modifier = Modifier.width(8.dp))
                             Box(
                                 modifier = Modifier
                                     .background(
                                         categoryColor,
-                                        RoundedCornerShape(12.dp)
+                                        RoundedCornerShape(8.dp)
                                     )
-                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text(
                                     text = "⭐ POPULAR",
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         color = Color.White,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 10.sp
                                     )
                                 )
                             }
@@ -547,7 +593,7 @@ private fun PlanItemCard(
                 )
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             
             // Botón Contratar
             Box(
