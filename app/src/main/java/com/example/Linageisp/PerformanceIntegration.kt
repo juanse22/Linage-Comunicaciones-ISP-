@@ -6,8 +6,8 @@ import android.util.Log
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import com.example.Linageisp.performance.CrossPlatformOptimizer
-import com.example.Linageisp.performance.PerformanceLogger
 import com.example.Linageisp.performance.core.DeviceCapabilityDetector
+import com.example.Linageisp.performance.core.PerformanceLogger
 import com.google.firebase.perf.FirebasePerformance
 import com.google.firebase.perf.metrics.Trace
 import kotlinx.coroutines.*

@@ -194,8 +194,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     
-    // Compose BOM and UI dependencies
-    implementation(platform(libs.androidx.compose.bom))
+    // Compose BOM and UI dependencies - optimized version
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
@@ -211,13 +210,10 @@ dependencies {
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.6")
     
-    // HTTP client and HTML parsing
-    implementation("org.jsoup:jsoup:1.17.2")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // HTTP client removed - not used in current implementation
     
     // Coroutines with performance optimizations
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.7")
     
     // ViewModel and Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
@@ -227,7 +223,6 @@ dependencies {
     // Performance & Memory Optimization (benchmark removido por problema 16KB)
     // implementation("androidx.metrics:metrics-performance:1.0.0-alpha04")
     implementation("androidx.tracing:tracing:1.2.0")
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
     // implementation("androidx.benchmark:benchmark-macro-junit4:1.2.2")  // CAUSA ERROR 16KB
     implementation("androidx.profileinstaller:profileinstaller:1.3.1")
     
@@ -251,23 +246,16 @@ dependencies {
     // Firebase Genkit AI and Gemini
     implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
     
-    // Markdown support for chat
-    implementation("io.noties.markwon:core:4.6.2")
-    implementation("io.noties.markwon:ext-strikethrough:4.6.2")
-    implementation("io.noties.markwon:ext-tables:4.6.2")
+    // Markdown support removed - not used in chat implementation
     
-    // Additional Compose animations for chat UI
-    implementation("androidx.compose.animation:animation-graphics:1.5.4")
+    // Animation graphics removed - not used
     
     // Hilt dependency injection
     implementation("com.google.dagger:hilt-android:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
     kapt("com.google.dagger:hilt-compiler:2.48")
     
-    // HTTP client for AI API calls
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    // HTTP client removed - using Firebase SDK directly
     
     // Core library desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
@@ -276,7 +264,6 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
     testImplementation("androidx.compose.ui:ui-test-junit4")
-    testImplementation("io.mockk:mockk:1.13.8")
     
     // Android testing
     androidTestImplementation(libs.androidx.junit)
@@ -286,9 +273,7 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-manifest")
     // androidTestImplementation("androidx.benchmark:benchmark-macro-junit4:1.2.2") // CAUSA ERROR 16KB
     
-    // Debug dependencies
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    // Debug dependencies - cleaned up duplicates
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
