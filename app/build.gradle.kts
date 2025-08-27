@@ -62,10 +62,18 @@ android {
                 "proguard-rules.pro"
             )
             
-            // Performance optimizations for release
+            // EXTREME OPTIMIZATIONS for maximum performance
             buildConfigField("boolean", "COMPOSE_COMPILER_REPORTS", "false")
             buildConfigField("boolean", "ENABLE_PERFORMANCE_MONITORING", "false")
             buildConfigField("boolean", "ENABLE_LOGGING", "false")
+            
+            // Additional release optimizations - zipAlign is enabled by default in modern AGP
+            // zipAlignEnabled = true // Removed - not needed in modern Android Gradle Plugin
+            
+            // Optimize APK for size and performance
+            ndk {
+                debugSymbolLevel = "NONE"
+            }
         }
     }
     
@@ -80,7 +88,7 @@ android {
     kotlinOptions {
         jvmTarget = "11"
         
-        // Compose compiler optimizations
+        // EXTREME PERFORMANCE: Kotlin compiler optimizations
         freeCompilerArgs += listOf(
             "-opt-in=kotlin.RequiresOptIn",
             "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
@@ -89,7 +97,11 @@ android {
             "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
             "-Xjvm-default=all",
             
-            // Compose compiler performance optimizations (removed deprecated flags)
+            // Extreme performance optimizations
+            "-Xbackend-threads=0",  // Use all available cores
+            "-Xno-param-assertions", // Remove parameter assertions in release
+            "-Xno-call-assertions",  // Remove call assertions in release
+            "-Xno-receiver-assertions", // Remove receiver assertions in release
         )
     }
     
@@ -102,6 +114,9 @@ android {
     
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
+        
+        // EXTREME PERFORMANCE: Compose compiler optimizations
+        // useLiveLiterals = false  // Removed for AGP compatibility - controlled via buildTypes instead
     }
     
     // ===== SOLUCION CRITICA: ERROR 16KB ALIGNMENT =====
@@ -166,17 +181,18 @@ android {
         }
     }
     
-    // Optimization: Enable bundle configuration
+    // EXTREME OPTIMIZATION: Bundle configuration for maximum size reduction
     bundle {
         language {
-            enableSplit = false
+            enableSplit = false  // Keep all languages in base APK for simplicity
         }
         density {
-            enableSplit = true
+            enableSplit = true   // Split by screen density for smaller downloads
         }
         abi {
-            enableSplit = true
+            enableSplit = true   // Split by architecture for smaller downloads
         }
+        // texture splitting not available in all AGP versions, removed for compatibility
     }
     
     // Optimization: Configure test options

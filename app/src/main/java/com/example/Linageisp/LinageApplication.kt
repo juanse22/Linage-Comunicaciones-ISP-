@@ -6,6 +6,9 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.messaging.FirebaseMessaging
+import com.example.Linageisp.performance.AppStartupOptimizer
+import com.example.Linageisp.performance.DeviceTierOptimizer
+import com.example.Linageisp.performance.FirebaseOptimizer
 import dagger.hilt.android.HiltAndroidApp
 
 /**
@@ -24,23 +27,42 @@ class LinageApplication : Application() {
         private const val TAG = "LinageApplication"
     }
     
+    // EXTREMO RENDIMIENTO: Optimizadores de performance
+    private lateinit var startupOptimizer: AppStartupOptimizer
+    private lateinit var deviceOptimizer: DeviceTierOptimizer
+    private lateinit var firebaseOptimizer: FirebaseOptimizer
+    
     override fun onCreate() {
         super.onCreate()
         
-        Log.d(TAG, "🚀 Inicializando Linage ISP Application")
+        Log.d(TAG, "🚀 Inicializando Linage ISP Application con EXTREMO RENDIMIENTO")
         
+        // FASE 1: Inicialización crítica (<500ms)
+        initializeCriticalPath()
+        
+        // FASE 2: Las tareas pesadas se ejecutan en background automáticamente
+    }
+    
+    /**
+     * EXTREMO RENDIMIENTO: Inicialización crítica mínima
+     * Solo lo esencial para mostrar UI inmediatamente
+     */
+    private fun initializeCriticalPath() {
         try {
-            // Inicializar Firebase
-            initializeFirebase()
+            // Inicializar optimizador de startup
+            startupOptimizer = AppStartupOptimizer(this)
+            startupOptimizer.initializeCriticalPath()
             
-            // Configurar FCM
-            initializeFCM()
+            // Inicializar optimizadores de rendimiento
+            deviceOptimizer = DeviceTierOptimizer(this)
+            firebaseOptimizer = FirebaseOptimizer.getInstance(this)
             
-            Log.d(TAG, "✅ Linage Application inicializada correctamente")
+            Log.d(TAG, "✅ Critical path inicializado - UI lista para mostrar")
             
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Error inicializando aplicación", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
+            Log.e(TAG, "❌ Error en critical path", e)
+            // Fallback a inicialización tradicional
+            fallbackInitialization(e)
         }
     }
     
@@ -117,6 +139,55 @@ class LinageApplication : Application() {
         } catch (e: Exception) {
             Log.e(TAG, "❌ Error inicializando FCM", e)
             FirebaseCrashlytics.getInstance().recordException(e)
+        }
+    }
+    
+    /**
+     * Fallback a inicialización tradicional si falla la optimizada
+     */
+    private fun fallbackInitialization(originalError: Exception) {
+        try {
+            Log.w(TAG, "⚠️ Usando inicialización fallback")
+            
+            // Firebase básico
+            initializeFirebase()
+            
+            // FCM básico
+            initializeFCM()
+            
+            // Report del error pero continúa funcionando
+            FirebaseCrashlytics.getInstance().recordException(originalError)
+            
+            Log.d(TAG, "✅ Fallback initialization completada")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error crítico en fallback initialization", e)
+        }
+    }
+    
+    /**
+     * Accessor para optimizadores (para uso en actividades)
+     */
+    fun getStartupOptimizer(): AppStartupOptimizer? = if (::startupOptimizer.isInitialized) startupOptimizer else null
+    fun getDeviceOptimizer(): DeviceTierOptimizer? = if (::deviceOptimizer.isInitialized) deviceOptimizer else null
+    fun getFirebaseOptimizer(): FirebaseOptimizer? = if (::firebaseOptimizer.isInitialized) firebaseOptimizer else null
+    
+    /**
+     * Cleanup resources cuando la app se destruye
+     */
+    override fun onTerminate() {
+        super.onTerminate()
+        
+        try {
+            if (::startupOptimizer.isInitialized) {
+                startupOptimizer.cleanup()
+            }
+            if (::firebaseOptimizer.isInitialized) {
+                firebaseOptimizer.cleanup()
+            }
+            Log.d(TAG, "🧹 Resources cleaned up")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error cleaning up resources", e)
         }
     }
 }

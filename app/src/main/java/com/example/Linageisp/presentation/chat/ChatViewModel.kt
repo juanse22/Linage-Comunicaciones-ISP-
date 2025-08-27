@@ -21,8 +21,7 @@ import javax.inject.Inject
 class ChatViewModel @Inject constructor(
     private val aiAssistant: LinageAIAssistant,
     private val genkitAI: GenkitAI,
-    private val crossPlatformOptimizer: com.example.Linageisp.performance.CrossPlatformOptimizer,
-    private val performanceLogger: com.example.Linageisp.performance.PerformanceLogger
+    private val crossPlatformOptimizer: com.example.Linageisp.performance.CrossPlatformOptimizer
 ) : ViewModel() {
     
     // Estado del chat
@@ -57,15 +56,13 @@ class ChatViewModel @Inject constructor(
             val messageStartTime = System.currentTimeMillis()
             
             // Log performance del inicio de mensaje
-            performanceLogger.logChatPerformanceIssue("message_sent", mapOf(
-                "messageLength" to text.length,
-                "timestamp" to messageStartTime
-            ))
+            Log.d("LINA", "Message sent - Length: ${text.length}, Time: $messageStartTime")
             
             // Agregar mensaje del usuario
             val addMessageStart = System.currentTimeMillis()
             addUserMessage(text)
-            performanceLogger.measureRenderTime("ChatViewModel", "addUserMessage", addMessageStart, System.currentTimeMillis())
+            val renderTime = System.currentTimeMillis() - addMessageStart
+            Log.d("LINA", "User message rendered in ${renderTime}ms")
             
             // SIEMPRE mostrar typing
             _isTyping.value = true
@@ -83,11 +80,7 @@ class ChatViewModel @Inject constructor(
                 val aiDuration = aiEndTime - aiStartTime
                 
                 // Log tiempo de respuesta de IA
-                performanceLogger.logChatPerformanceIssue("ai_response_time", mapOf(
-                    "duration" to aiDuration,
-                    "messageLength" to text.length,
-                    "responseLength" to response.content.length
-                ))
+                Log.d("LINA", "AI response time: ${aiDuration}ms, Message: ${text.length} chars, Response: ${response.content.length} chars")
                 
                 // Mostrar respuesta con streaming
                 streamResponse(response.content)
@@ -99,21 +92,14 @@ class ChatViewModel @Inject constructor(
                 Log.d("LINA", "✅ IA respondió exitosamente en ${totalDuration}ms")
                 
                 // Log éxito total
-                performanceLogger.logChatPerformanceIssue("message_complete", mapOf(
-                    "totalDuration" to totalDuration,
-                    "aiDuration" to aiDuration,
-                    "streamingWords" to response.content.split(" ").size
-                ))
+                Log.d("LINA", "Message complete - Total: ${totalDuration}ms, AI: ${aiDuration}ms, Words: ${response.content.split(" ").size}")
                 
             } catch (e: Exception) {
                 Log.e("LINA", "Error IA: ${e.message}", e)
                 
                 // Log error crítico
-                performanceLogger.logChatPerformanceIssue("ai_error", mapOf(
-                    "error" to e.message.orEmpty(),
-                    "errorType" to e.javaClass.simpleName,
-                    "duration" to (System.currentTimeMillis() - messageStartTime)
-                ))
+                val errorDuration = System.currentTimeMillis() - messageStartTime
+                Log.e("LINA", "AI error: ${e.message}, Type: ${e.javaClass.simpleName}, Duration: ${errorDuration}ms")
                 
                 // Mostrar error pero seguir intentando
                 addAIMessage("""

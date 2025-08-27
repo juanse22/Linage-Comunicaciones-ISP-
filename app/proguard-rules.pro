@@ -6,14 +6,14 @@
 # GENERAL OPTIMIZATIONS
 # ------------------------------------------------------------------------------------------------
 
-# Enable aggressive optimization
+# Enable moderate optimization (reduced for KAPT compatibility)
 -optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*,!code/allocation/variable
--optimizationpasses 5
+-optimizationpasses 3
 -allowaccessmodification
 -dontpreverify
--repackageclasses ''
--mergeinterfacesaggressively
--overloadaggressively
+# -repackageclasses ''  # Disabled for Hilt compatibility 
+# -mergeinterfacesaggressively  # Disabled for Hilt compatibility
+# -overloadaggressively  # Disabled for Hilt compatibility
 
 # Keep line numbers for crash reports
 -keepattributes SourceFile,LineNumberTable
@@ -82,6 +82,32 @@
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
+
+# ------------------------------------------------------------------------------------------------
+# HILT/DAGGER OPTIMIZATIONS
+# ------------------------------------------------------------------------------------------------
+
+# Hilt generated classes
+-keep class * extends dagger.hilt.internal.GeneratedComponent
+-keep class * extends dagger.hilt.internal.GeneratedEntryPoint
+-keep class **.*_HiltComponents$* { *; }
+-keep class **.*_Impl { *; }
+-keep class **.*_MembersInjector { *; }
+
+# Hilt processors and annotations
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class * implements dagger.hilt.internal.GeneratedComponent
+-keepclassmembers class * {
+    @javax.inject.Inject <fields>;
+    @javax.inject.Inject <init>(...);
+}
+
+# FCM and injection classes
+-keep class com.example.Linageisp.fcm.** { *; }
+-keep class **.*Repository { *; }
+-keep class **.*Manager { *; }
+-keep class **.*Service { *; }
 
 # ------------------------------------------------------------------------------------------------
 # FIREBASE OPTIMIZATIONS
