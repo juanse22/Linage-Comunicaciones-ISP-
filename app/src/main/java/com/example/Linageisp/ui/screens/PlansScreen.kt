@@ -20,12 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.example.Linageisp.data.Plan
-import com.example.Linageisp.ui.theme.LinageOrange
-import com.example.Linageisp.ui.theme.LinageWhite
+import com.example.Linageisp.ui.theme.*
 import com.example.Linageisp.FirebaseManager
 import com.example.Linageisp.TraceScreenLoad
 import com.example.Linageisp.utils.WhatsAppUtils
@@ -57,15 +57,18 @@ fun PlansScreen(
     
     TraceScreenLoad(screenName = "PlansScreen") {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .background(DeepBlack) // Fondo negro profundo
         ) {
-            // Top App Bar
+            // Top App Bar con diseño fruity aero negro
             TopAppBar(
                 title = {
                     Text(
-                        text = "Planes de Internet",
+                        text = "Planes Premium ISP",
                         style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.ExtraBold,
+                            color = PureWhite
                         )
                     )
                 },
@@ -73,14 +76,15 @@ fun PlansScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver al inicio"
+                            contentDescription = "Volver al inicio",
+                            tint = PureWhite
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LinageOrange,
-                    titleContentColor = LinageWhite,
-                    navigationIconContentColor = LinageWhite
+                    containerColor = DeepBlack,
+                    titleContentColor = PureWhite,
+                    navigationIconContentColor = PureWhite
                 )
             )
             
@@ -156,7 +160,7 @@ fun getCategoriesData(): List<CategoryData> {
             id = "win_futbol",
             title = "Planes para verdaderos fanáticos del fútbol",
             emoji = "⚽",
-            color = Color(0xFF4CAF50),
+            color = NeonGreen, // Verde neón brillante
             planCount = 3,
             plans = listOf(
                 PlanData("Silver con Win+", "$113.000", "400 Megas", "400 Megas + DIRECTV GO Flex + Win+ Fútbol"),
@@ -170,7 +174,7 @@ fun getCategoriesData(): List<CategoryData> {
             id = "premium_directv",
             title = "Planes Premium",
             emoji = "📺",
-            color = Color(0xFFFF9800),
+            color = ElectricBlue, // Azul eléctrico
             planCount = 3,
             plans = listOf(
                 PlanData("Silver", "$90.000", "400 Megas", "400 Megas + DIRECTV GO Flex"),
@@ -184,7 +188,7 @@ fun getCategoriesData(): List<CategoryData> {
             id = "vip_paramount", 
             title = "Planes VIP",
             emoji = "🎬",
-            color = Color(0xFF9C27B0),
+            color = VibrantOrange, // Naranja vibrante
             planCount = 4,
             plans = listOf(
                 PlanData("200 Megas", "$65.000", "200 Megas", "Solo internet + Paramount"),
@@ -199,7 +203,7 @@ fun getCategoriesData(): List<CategoryData> {
             id = "vip_max_tv",
             title = "Planes VIP Max", 
             emoji = "📺",
-            color = Color(0xFF673AB7),
+            color = BrightPurple, // Morado brillante
             planCount = 4,
             plans = listOf(
                 PlanData("200 Megas", "$80.000", "200 Megas", "Internet + TV 120 canales + Paramount"),
@@ -214,7 +218,7 @@ fun getCategoriesData(): List<CategoryData> {
             id = "netflix_plans",
             title = "Planes Netflix",
             emoji = "🎥",
-            color = Color(0xFFE91E63),
+            color = IntenseRed, // Rojo intenso
             planCount = 3,
             plans = listOf(
                 PlanData("400 Megas", "$85.000", "400 Megas", "Internet + Netflix HD"),
@@ -228,7 +232,7 @@ fun getCategoriesData(): List<CategoryData> {
             id = "camaras_seguridad",
             title = "Planes Cámaras",
             emoji = "📹",
-            color = Color(0xFF607D8B),
+            color = BrilliantCyan, // Cyan brillante
             planCount = 3,
             plans = listOf(
                 PlanData("400 Megas", "$90.000", "400 Megas", "Internet + Cámara seguridad + Paramount"),
@@ -248,26 +252,18 @@ private fun PlansHeader() {
     // REMOVIDO: Estado de animación que causaba auto-scroll
     // El header ahora es estático para evitar recomposiciones
     
-    Box( // Cambiado de AnimatedVisibility a Box estático
+    Box( // Header premium con efectos metálicos
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            LinageOrange.copy(alpha = 0.15f),
-                            LinageOrange.copy(alpha = 0.05f),
-                            Color.Transparent
-                        ),
-                        radius = 600f
-                    ),
-                    RoundedCornerShape(24.dp)
+                .glassmorphismMetallic(
+                    borderRadius = 24.dp,
+                    backgroundAlpha = 0.18f,
+                    borderAlpha = 0.5f
                 )
-                .border(
-                    1.dp,
-                    Color.White.copy(alpha = 0.2f),
-                    RoundedCornerShape(24.dp)
+                .metallicShadow(
+                    elevation = 12.dp,
+                    borderRadius = 24.dp
                 )
-                .clip(RoundedCornerShape(24.dp))
         ) {
             Column(
                 modifier = Modifier.padding(28.dp),
@@ -285,8 +281,13 @@ private fun PlansHeader() {
                     text = "Encuentra tu Plan Perfecto",
                     style = MaterialTheme.typography.displaySmall.copy(
                         fontWeight = FontWeight.ExtraBold,
-                        color = LinageOrange,
-                        fontSize = 28.sp
+                        color = MetallicCopper,
+                        fontSize = 28.sp,
+                        shadow = Shadow(
+                            color = MetallicGraphite,
+                            offset = androidx.compose.ui.geometry.Offset(1f, 1f),
+                            blurRadius = 2f
+                        )
                     ),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
@@ -294,9 +295,9 @@ private fun PlansHeader() {
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = "Toca cualquier categoría para ver los planes disponibles",
+                    text = "Tecnología Premium ISP • Servicio Empresarial",
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        color = MetallicSilver,
                         fontWeight = FontWeight.Medium
                     ),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -349,27 +350,15 @@ private fun ExpandableCategoryCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            category.color.copy(alpha = if (expanded) 0.15f else 0.08f),
-                            category.color.copy(alpha = 0.03f),
-                            Color.Transparent
-                        )
-                    ),
-                    RoundedCornerShape(20.dp)
+                .glassmorphismCategoryMetallic(
+                    category = category.id,
+                    borderRadius = 20.dp,
+                    backgroundAlpha = if (expanded) 0.15f else 0.08f
                 )
-                .border(
-                    width = if (expanded) 2.dp else 1.dp,
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            category.color.copy(alpha = if (expanded) 0.6f else 0.3f),
-                            category.color.copy(alpha = 0.2f)
-                        )
-                    ),
-                    shape = RoundedCornerShape(20.dp)
+                .metallicShadow(
+                    elevation = if (expanded) 16.dp else 8.dp,
+                    borderRadius = 20.dp
                 )
-                .clip(RoundedCornerShape(20.dp))
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
@@ -462,7 +451,7 @@ private fun ExpandableCategoryCard(
                     Column(
                         modifier = Modifier.padding(top = 16.dp)
                     ) {
-                        Divider(
+                        HorizontalDivider(
                             color = category.color.copy(alpha = 0.3f),
                             thickness = 1.dp,
                             modifier = Modifier.padding(vertical = 8.dp)
@@ -501,30 +490,15 @@ private fun PlanItemCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                if (plan.isHighlighted) {
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            categoryColor.copy(alpha = 0.15f),
-                            categoryColor.copy(alpha = 0.08f)
-                        )
-                    )
-                } else {
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.1f),
-                            Color.White.copy(alpha = 0.05f)
-                        )
-                    )
-                },
-                RoundedCornerShape(16.dp)
+            .glassmorphismMetallic(
+                borderRadius = 16.dp,
+                backgroundAlpha = if (plan.isHighlighted) 0.2f else 0.12f,
+                borderAlpha = if (plan.isHighlighted) 0.6f else 0.4f
             )
-            .border(
-                width = if (plan.isHighlighted) 2.dp else 1.dp,
-                color = if (plan.isHighlighted) categoryColor.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(16.dp)
+            .metallicShadow(
+                elevation = if (plan.isHighlighted) 12.dp else 6.dp,
+                borderRadius = 16.dp
             )
-            .clip(RoundedCornerShape(16.dp))
     ) {
         Column(
             modifier = Modifier.padding(12.dp)
@@ -645,22 +619,15 @@ private fun GeneralConsultationFooter() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(
-                        LinageOrange.copy(alpha = 0.1f),
-                        Color.Transparent
-                    ),
-                    radius = 400f
-                ),
-                RoundedCornerShape(20.dp)
+            .glassmorphismMetallic(
+                borderRadius = 20.dp,
+                backgroundAlpha = 0.15f,
+                borderAlpha = 0.4f
             )
-            .border(
-                1.dp,
-                Color.White.copy(alpha = 0.2f),
-                RoundedCornerShape(20.dp)
+            .metallicShadow(
+                elevation = 10.dp,
+                borderRadius = 20.dp
             )
-            .clip(RoundedCornerShape(20.dp))
     ) {
         Column(
             modifier = Modifier.padding(20.dp),

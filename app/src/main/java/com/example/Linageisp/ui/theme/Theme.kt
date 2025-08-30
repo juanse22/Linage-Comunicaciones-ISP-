@@ -12,55 +12,60 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 /**
- * Esquema de colores para modo oscuro mejorado
- * Utiliza la paleta naranja corporativa de Linage ISP con mejor contraste
+ * Esquema de colores metálicos premium para modo oscuro
+ * Diseño ISP profesional con acabados metálicos
  */
-private val DarkColorScheme = darkColorScheme(
-    primary = LinageOrange,
-    onPrimary = LinageWhite,
-    primaryContainer = LinageOrangeDark,
-    onPrimaryContainer = LinageWhite,
-    secondary = LinageGrayLight,
-    onSecondary = LinageDarkBackground,
-    secondaryContainer = LinageDarkSurfaceVariant,
-    onSecondaryContainer = LinageWhite,
-    tertiary = LinageOrangeLight,
-    onTertiary = LinageGrayDark,
-    background = LinageDarkBackground,
-    onBackground = LinageWhite,
-    surface = LinageDarkSurface,
-    onSurface = LinageWhite,
-    surfaceVariant = LinageDarkSurfaceVariant,
-    onSurfaceVariant = LinageGrayLight,
-    outline = LinageDarkOutline,
-    inverseOnSurface = LinageDarkBackground,
-    inverseSurface = LinageWhite,
-    inversePrimary = LinageOrangeDark
+private val MetallicDarkColorScheme = darkColorScheme(
+    primary = MetallicCopper,
+    onPrimary = MetallicPearl,
+    primaryContainer = MetallicBronze,
+    onPrimaryContainer = MetallicPearl,
+    secondary = MetallicSilver,
+    onSecondary = MetallicGraphiteDark,
+    secondaryContainer = MetallicGraphite,
+    onSecondaryContainer = MetallicTitanium,
+    tertiary = MetallicRoseGold,
+    onTertiary = MetallicGraphite,
+    background = MetallicGraphiteDark,
+    onBackground = MetallicPearl,
+    surface = MetallicGraphite,
+    onSurface = MetallicPearl,
+    surfaceVariant = MetallicGraphite,
+    onSurfaceVariant = MetallicSilver,
+    outline = MetallicCopper.copy(alpha = 0.5f),
+    inverseOnSurface = MetallicGraphiteDark,
+    inverseSurface = MetallicPearl,
+    inversePrimary = MetallicBronze
 )
 
 /**
- * Esquema de colores para modo claro
- * Utiliza la paleta naranja corporativa de Linage ISP
+ * Esquema de colores metálicos premium para modo claro
+ * Diseño ISP profesional con acabados metálicos
  */
-private val LightColorScheme = lightColorScheme(
-    primary = LinageOrange,
-    secondary = LinageGray,
-    tertiary = LinageOrangeAccent,
-    background = LinageBackground,
-    surface = LinageWhite,
-    onPrimary = LinageWhite,
-    onSecondary = LinageWhite,
-    onBackground = LinageGrayDark,
-    onSurface = LinageGrayDark,
-    primaryContainer = LinageOrangeSoft,
-    onPrimaryContainer = LinageOrangeDark
+private val MetallicLightColorScheme = lightColorScheme(
+    primary = MetallicCopper,
+    secondary = MetallicSilver,
+    tertiary = MetallicRoseGold,
+    background = MetallicPearl.copy(alpha = 0.95f),
+    surface = MetallicPearl.copy(alpha = 0.15f),
+    onPrimary = MetallicPearl,
+    onSecondary = MetallicGraphite,
+    onBackground = MetallicGraphite,
+    onSurface = MetallicGraphite,
+    primaryContainer = MetallicBronze.copy(alpha = 0.2f),
+    onPrimaryContainer = MetallicCopper,
+    secondaryContainer = MetallicSilver.copy(alpha = 0.3f),
+    onSecondaryContainer = MetallicGraphite,
+    surfaceVariant = MetallicTitanium.copy(alpha = 0.2f),
+    onSurfaceVariant = MetallicCopper,
+    outline = MetallicCopper.copy(alpha = 0.3f)
 )
 
 @Composable
 fun LinageTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // Dynamic color disabled to force metallic premium theme
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -69,8 +74,8 @@ fun LinageTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> MetallicDarkColorScheme
+        else -> MetallicLightColorScheme
     }
 
     MaterialTheme(
